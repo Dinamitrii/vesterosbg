@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="700" viewBox="0 0 1000 700">
+  <!-- Вестерос БГ ЕООД - Blue #12365E and Gold #C5A880 -->
+  <g transform="translate(500, 280)">
+    <!-- Shield base -->
+    <path d="M 0 145 L -145 -15 L -145 -95 L 0 -150 L 145 -95 L 145 -15 C 145 60 80 115 0 145 Z" fill="#C5A880"/>
+    <!-- Navy blue parts -->
+    <path d="M -145 -45 L 0 -115 L 145 -45 L 145 -15 L 108 -38 L 0 -100 L -108 -38 L -145 -15 Z" fill="#12365E"/>
+    <path d="M -92 95 L -92 -22 L -32 -58 L -32 95 C -52 110 -72 105 -92 95" fill="#12365E"/>
+    <path d="M -8 140 L -8 -70 L 32 -50 L 32 125 C 18 132 5 137 -8 140" fill="#12365E"/>
+    <path d="M 72 105 L 72 -18 L 108 -38 L 108 80 C 97 90 84 98 72 105" fill="#12365E"/>
+  </g>
+  <text x="500" y="530" font-family="Arial Black, Montserrat, sans-serif" font-weight="900" font-size="78" fill="#12365E" text-anchor="middle" letter-spacing="0.5">ВЕСТЕРОС БГ</text>
+  <text x="500" y="585" font-family="Inter, Arial, sans-serif" font-weight="300" font-size="46" fill="#C5A880" text-anchor="middle" letter-spacing="14">ЕООД</text>
+</svg>
