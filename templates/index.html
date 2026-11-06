@@ -22,10 +22,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap&subset=cyrillic"
           rel="stylesheet">
     <style>
-    .hero{padding-top:260px}
+        .hero {
+            padding-top: 260px
+        }
     </style>
 
 </head>
+<link rel="preload" as="image" href="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }}"
+      imagesrcset="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }} 160w,{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }} 320w"
+      imagesizes="(max-width: 700px) 88px, 96px" fetchpriority="high">
+{% include "_performance_head.html" %}
 <body>
 <header>
     <div class="wrap bar">

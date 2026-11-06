@@ -11,7 +11,7 @@ from xml.etree import ElementTree as ET
 from xml.sax.saxutils import escape
 
 from PIL import Image, ImageOps, UnidentifiedImageError
-from responsive_images import generate as generate_responsive_image, install as install_responsive_images, remove_responsive_variants
+from responsive_images import generate as generate_responsive_image, install as install_responsive_images
 
 from flask import Flask, Response, abort, flash, redirect, render_template, request, send_from_directory, session, url_for
 
@@ -200,7 +200,7 @@ def public_site_url():
 @app.get("/favicon/<path:filename>")
 def favicon_asset(filename):
     allowed_files = {
-        "favicon.ico", "favicon-16x16.png", "favicon-32x32.png",
+        "favicon.ico", "favicon.svg", "favicon-16x16.png", "favicon-32x32.png",
         "apple-touch-icon.png", "web-app-manifest-192x192.png",
         "web-app-manifest-512x512.png", "site.webmanifest",
     }

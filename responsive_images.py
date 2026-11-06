@@ -13,7 +13,7 @@ from markupsafe import Markup, escape
 
 SIZES = (80, 160, 240, 320, 480, 640, 960, 1200)
 # Changing the profile creates new URLs instead of overwriting cached images.
-PROFILE = b'vatreshni-remonti-webp-v1:content-detection:animation:adaptive-q55-62-70-floor45-52-60:alpha80-60:budget020:80-160-240-320-480-640-960-1200'
+PROFILE = b'shop-webp-v5:content-detection:animation:adaptive-q45-62-70-floor40-52-60:alpha80-60:budget008-020:80-160-240-320-480-640-960-1200'
 FORMATS = {'JPEG', 'PNG', 'WEBP', 'GIF', 'AVIF', 'BMP', 'TIFF'}
 IMAGE_SUFFIXES = {'.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif', '.bmp', '.tif', '.tiff', '.heic', '.heif'}
 MAX_ANIMATION_PIXELS = 40_000_000
@@ -34,11 +34,14 @@ def _atomic_bytes(path, data):
 
 
 def _encode_static(image, quality):
-    # Retain the normal profile for light images. Try at most two moderate
-    # reductions for expensive images, from the original resized pixels each time.
-    budget = max(4096, int(image.width * image.height * 0.20))
+    # Use a tighter byte budget for small thumbnails, where visible dimensions
+    # are limited and transfer savings help the first screen most.
+    ratio = 0.08 if image.width <= 320 else 0.20
+    budget = max(4096, int(image.width * image.height * ratio))
     best = None
-    for q, alpha in ((quality, 80), (quality - 5, 60), (quality - 10, 60)):
+    floor = 40 if image.width <= 320 else quality - 10
+    qualities = tuple(dict.fromkeys((quality, max(floor, quality - 5), max(floor, quality - 10))))
+    for q, alpha in ((q, 80 if q == quality else 60) for q in qualities):
         buffer = io.BytesIO()
         image.save(buffer, 'WEBP', quality=q, alpha_quality=alpha, method=6)
         candidate = buffer.getvalue()
@@ -90,8 +93,7 @@ def generate_result(path):
             frame_count = getattr(raw, 'n_frames', 1)
             if frame_count > 1 and not animated:
                 return {'status': 'skipped', 'reason': 'multipage document preserved'}
-            if animated and (
-                    frame_count > MAX_ANIMATION_FRAMES or raw.width * raw.height * frame_count > MAX_ANIMATION_PIXELS):
+            if animated and (frame_count > MAX_ANIMATION_FRAMES or raw.width * raw.height * frame_count > MAX_ANIMATION_PIXELS):
                 return {'status': 'skipped', 'reason': 'large animation preserved (resource limit)'}
             orientation = raw.getexif().get(274, 1)
             loop = raw.info.get('loop', 0)
@@ -132,7 +134,7 @@ def generate_result(path):
                     except (OSError, ValueError):
                         valid = False
                 if not valid:
-                    quality = 55 if size <= 320 else 62 if size <= 640 else 70
+                    quality = 45 if size <= 320 else 62 if size <= 640 else 70
                     stream = io.BytesIO()
                     options = dict(quality=quality, method=6, alpha_quality=80)
                     if animated:
@@ -144,8 +146,7 @@ def generate_result(path):
                         encoded = _encode_static(preview, quality)
                     # Do not replace a small, already efficient WebP with more bytes
                     # at identical dimensions, or recompress it unnecessarily.
-                    if raw.format == 'WEBP' and orientation == 1 and preview.size == image.size and len(
-                            source_bytes) < len(encoded):
+                    if raw.format == 'WEBP' and orientation == 1 and preview.size == image.size and len(source_bytes) < len(encoded):
                         encoded = source_bytes
                     with Image.open(io.BytesIO(encoded)) as check:
                         check.load()
@@ -158,8 +159,7 @@ def generate_result(path):
                 _atomic_bytes(manifest, payload)
             return {'status': 'optimized', 'format': raw.format, 'animated': animated, 'variants': len(rows)}
     except (OSError, ValueError, Image.DecompressionBombError) as error:
-        logging.getLogger(__name__).warning('Image optimization failed for %s: %s; original retained', path.name,
-                                            type(error).__name__)
+        logging.getLogger(__name__).warning('Image optimization failed for %s: %s; original retained', path.name, type(error).__name__)
         return {'status': 'failed', 'reason': type(error).__name__}
 
 
@@ -174,7 +174,9 @@ def _source_for_url(app, url):
     if parts.netloc and parts.scheme in ('', 'http', 'https'):
         from flask import has_request_context, request
         local = has_request_context() and parts.netloc.lower() == request.host.lower()
-    prefix = '/static/uploads/categories/'
+    prefix = '/static/img/'
+    if parts.path == '/static/img/brand/vesterosbg-brand-logo.png':
+        prefix = '/static/img/brand/'
     if not local or not parts.path.startswith(prefix):
         return None
     relative = unquote(parts.path[len(prefix):])
@@ -195,7 +197,6 @@ def _source_for_url(app, url):
         return None
     return source, prefix + '/'.join(quote(p) for p in pieces[:-1]) + ('/' if len(pieces) > 1 else '')
 
-
 def install(app):
     def responsive_image_attrs(url, size=640, sizes='(max-width: 600px) 100vw, 300px'):
         attrs = {'src': url or ''}
@@ -210,38 +211,30 @@ def install(app):
                     valid = valid and isinstance(row, dict) and all(
                         isinstance(row.get(key), int) and row[key] > 0 for key in ('width', 'size'))
                     entry = row.get('name', '') if isinstance(row, dict) else ''
-                    valid = valid and isinstance(entry, str) and bool(
-                        entry) and '/' not in entry and '\\' not in entry and (folder / entry).is_file()
+                    valid = valid and isinstance(entry, str) and bool(entry) and '/' not in entry and '\\' not in entry and (folder / entry).is_file()
                 if valid:
                     unique = {}
                     for row in rows:
                         previous = unique.get(row['width'])
-                        if previous is None or (folder / row['name']).stat().st_size < (
-                                folder / previous['name']).stat().st_size:
+                        if previous is None or (folder / row['name']).stat().st_size < (folder / previous['name']).stat().st_size:
                             unique[row['width']] = row
                     chosen = min(rows, key=lambda row: abs(row['size'] - size))
                     base = prefix + '_responsive/'
                     attrs['src'] = base + quote(chosen['name'])
-                    attrs['srcset'] = ', '.join(
-                        base + quote(row['name']) + f' {width}w' for width, row in sorted(unique.items()))
+                    attrs['srcset'] = ', '.join(base + quote(row['name']) + f' {width}w' for width, row in sorted(unique.items()))
                     attrs['sizes'] = sizes
         except (OSError, ValueError, KeyError, TypeError, AttributeError):
             pass
         return Markup(' ').join(Markup('{}="{}"').format(key, escape(value)) for key, value in attrs.items())
+    def responsive_image_preload(url, size=640, sizes='(max-width: 600px) 100vw, 300px'):
+        # Keep the preload candidate selection in sync with the rendered img srcset.
+        attrs = dict(re.findall(r'([a-z]+)="([^"]*)"', str(responsive_image_attrs(url, size, sizes))))
+        if not attrs.get('src'):
+            return Markup('')
+        srcset = Markup(' imagesrcset="{}"').format(escape(attrs['srcset'])) if attrs.get('srcset') else Markup('')
+        image_sizes = Markup(' imagesizes="{}"').format(escape(attrs['sizes'])) if attrs.get('sizes') else Markup('')
+        return Markup('<link rel="preload" as="image" href="{}"{}{} fetchpriority="high">').format(
+            escape(attrs['src']), srcset, image_sizes)
 
     app.jinja_env.globals['responsive_image_attrs'] = responsive_image_attrs
-
-
-def remove_responsive_variants(path):
-    """Remove generated variants and their manifest when the original is deleted."""
-    path = Path(path)
-    folder = path.parent / '_responsive'
-    if not folder.is_dir():
-        return
-    for generated in folder.glob(path.name + '.*.webp'):
-        generated.unlink(missing_ok=True)
-    (folder / (path.name + '.json')).unlink(missing_ok=True)
-    try:
-        folder.rmdir()
-    except OSError:
-        pass
+    app.jinja_env.globals['responsive_image_preload'] = responsive_image_preload
