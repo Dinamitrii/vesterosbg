@@ -1,285 +1,340 @@
 <!DOCTYPE html>
 <html lang="bg-BG">
 <head>
-<meta charset="utf-8">
+    <meta charset="utf-8">
 
-    {% include "_favicons.html" %}
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Изработка и поддръжка на уебсайтове от 350 € | Vesteros BG</title>
-<meta name="description" content="Vesteros BG изработва и поддържа бързи уебсайтове с включена SEO и AEO оптимизация. Сайт от 350 € за до 5 дни, допълнителен модул по 100 €.">
-<link rel="canonical" href="https://vesterosbg.online/">
-<meta name="theme-color" content="#14202B">
-<meta property="og:type" content="website">
-<meta property="og:locale" content="bg_BG">
-<meta property="og:title" content="Vesteros BG – уебсайтове, които се класират в Google">
-<meta property="og:description" content="Сайт от 350 € за до 5 дни. SEO и AEO оптимизация е включена в цената.">
-<meta property="og:url" content="https://vesterosbg.online/">
-<meta name="robots" content="index, follow, max-image-preview:large">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap&subset=cyrillic" rel="stylesheet">
-<style>
-:root{--ink:#14202B;--ink2:#41505E;--paper:#F2F4F6;--card:#FFFFFF;--line:#D5DBE1;--teal:#0F6B73;--amber:#E8A33D;--r:14px;
---head:'Bricolage Grotesque','Segoe UI',Arial,sans-serif;--body:'Instrument Sans','Segoe UI',Arial,sans-serif}
-*{box-sizing:border-box;margin:0}
-html{scroll-behavior:smooth}
-body{font:400 1.0625rem/1.65 var(--body);color:var(--ink);background:var(--paper)}
-h1,h2,h3{font-family:var(--head),serif;line-height:1.1;letter-spacing:-.02em}
-a{color:inherit}
-:focus-visible{outline:3px solid var(--amber);outline-offset:3px}
-.wrap{max-width:1100px;margin:0 auto;padding:0 22px}
-section{padding:84px 0}
-h2{font-size:clamp(1.9rem,4vw,2.8rem);font-weight:800;margin-bottom:14px;max-width:18ch}
-.lead{color:var(--ink2);max-width:62ch;margin-bottom:40px}
-/* header */
-header{position:sticky;top:0;z-index:10;background:rgba(242,244,246,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-.bar{display:flex;align-items:flex-start;justify-content:flex-end;padding:10px 0}
-.brand{position:absolute;top:0;left:0;display:flex;align-items:center;gap:10px;text-decoration:none;font:800 1.2rem var(--head)}
-.brand img{height:120px;width:auto;border-radius:8px}
-nav{display:flex;gap:26px;align-items:center}
-nav a{text-decoration:none;font-weight:500;font-size:.97rem}
-nav a:hover{color:var(--teal)}
-.btn{display:inline-block;background:var(--ink);color:#fff;text-decoration:none;font-weight:600;padding:13px 22px;border-radius:10px;transition:background .2s}
-.btn:hover{background:var(--teal)}
-.btn.alt{background:transparent;color:var(--ink);border:2px solid var(--ink)}
-.btn.alt:hover{background:var(--ink);color:#fff}
-nav .btn{padding:9px 16px;color:#fff}
-/* hero */
-.hero{padding:70px 0 90px}
-.hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
-h1{font-size:clamp(2.5rem,5.6vw,4.3rem);font-weight:800;margin-bottom:22px}
-.hero p{color:var(--ink2);font-size:1.15rem;max-width:46ch;margin-bottom:30px}
-.cta{display:flex;gap:12px;flex-wrap:wrap}
-.build{background:var(--ink);color:#fff;border-radius:var(--r);padding:0;overflow:hidden;box-shadow:0 30px 60px -30px rgba(20,32,43,.6)}
-.chrome{display:flex;gap:7px;padding:13px 16px;background:#0D1620}
-.chrome i{width:11px;height:11px;border-radius:50%;background:#33424F}
-.chrome span{margin-left:10px;font-size:.8rem;color:#8FA1B1}
-.days{padding:22px 22px 26px;display:grid;gap:13px}
-.day{display:grid;grid-template-columns:62px 1fr;gap:14px;align-items:center;font-size:.93rem}
-.day b{color:var(--amber);font-weight:600}
-.track{height:10px;border-radius:6px;background:#26384A;overflow:hidden}
-.track em{display:block;height:100%;width:0;background:var(--teal);border-radius:6px;animation:fill 1.1s cubic-bezier(.2,.7,.2,1) forwards}
-.day:nth-child(1) .track em{--w:100%;animation-delay:.2s}
-.day:nth-child(2) .track em{--w:100%;animation-delay:.5s}
-.day:nth-child(3) .track em{--w:100%;animation-delay:.8s}
-.day:nth-child(4) .track em{--w:100%;animation-delay:1.1s}
-.day:nth-child(5) .track em{--w:100%;animation-delay:1.4s;background:var(--amber)}
-@keyframes fill{to{width:var(--w)}}
-.day span{display:flex;justify-content:space-between;gap:8px}
-.day span small{color:#8FA1B1;font-size:.82rem}
-.days p{margin:6px 0 0;color:#B7C4D0;font-size:.9rem}
-/* pricing */
-.price{background:var(--ink);color:#fff}
-.price .lead{color:#B7C4D0}
-.plans{display:grid;grid-template-columns:1.2fr 1fr;gap:20px}
-.plan{border-radius:var(--r);padding:34px;background:#1C2C3A;border:1px solid #2C4053}
-.plan.main{background:#fff;color:var(--ink);border:0}
-.plan h3{font-size:1.4rem;margin-bottom:6px}
-.amt{font:800 3.4rem/1 var(--head);margin:14px 0 4px}
-.amt small{font:500 1rem var(--body);opacity:.7}
-.plan .time{margin-bottom:20px;opacity:.75}
-.plan ul{list-style:none;padding:0;display:grid;gap:10px}
-.plan li{padding-left:26px;position:relative}
-.plan li::before{content:"";position:absolute;left:0;top:.5em;width:13px;height:7px;border-left:3px solid var(--teal);border-bottom:3px solid var(--teal);transform:rotate(-45deg)}
-.plan:not(.main) li::before{border-color:var(--amber)}
-.note{margin-top:22px;color:#B7C4D0;font-size:.95rem}
-/* services */
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
-.item{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:26px}
-.item h3{font-size:1.2rem;margin-bottom:8px}
-.item p{color:var(--ink2);font-size:.98rem}
-.mods{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}
-.mods li{list-style:none;background:var(--card);border:1px solid var(--line);border-radius:99px;padding:9px 18px;font-weight:500}
-/* seo */
-.seo{background:#E3ECEC}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
-.two p{color:var(--ink2);margin-bottom:14px}
-.cols{display:grid;gap:14px}
-.cols div{background:#fff;border-radius:var(--r);padding:22px;border-left:5px solid var(--teal)}
-.cols div:last-child{border-color:var(--amber)}
-.cols h3{font-size:1.15rem;margin-bottom:6px}
-/* portfolio */
-.work{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
-.shot{aspect-ratio:16/10;background:linear-gradient(135deg,#DCE6EA,#C3D3D9);display:grid;place-items:center;color:var(--ink2);font-weight:600}
-.work div:last-child{padding:18px 22px}
-.work h3{font-size:1.1rem}
-.work p{color:var(--ink2);font-size:.93rem}
-/* faq */
-details{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin-bottom:10px}
-summary{cursor:pointer;font-weight:600;font-size:1.05rem}
-details p{margin-top:10px;color:var(--ink2)}
-/* contact */
-.contact{background:var(--ink);color:#fff}
-.contact h2{max-width:22ch}
-.contact p{color:#B7C4D0;max-width:56ch;margin-bottom:26px}
-.contact .btn{background:var(--amber);color:var(--ink)}
-.contact .btn:hover{background:#fff}
-footer{padding:28px 0;font-size:.92rem;color:var(--ink2)}
-footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
-@media(max-width:860px){
-.hero .wrap,.plans,.two{grid-template-columns:1fr}
-nav a:not(.btn){display:none}
-section{padding:60px 0}
-}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.track em{animation:none;width:var(--w)}}
-</style>
+    {% include "_favicons.html" %} {% include "_performance_head.html" %}
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Изработка и поддръжка на уебсайтове от 350 € | Vesteros BG</title>
+    <meta name="description"
+          content="Vesteros BG изработва и поддържа бързи уебсайтове с включена SEO и AEO оптимизация. Сайт от 350 € за до 5 дни, допълнителен модул по 100 €.">
+    <link rel="canonical" href="https://vesterosbg.online/">
+    <meta name="theme-color" content="#14202B">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="bg_BG">
+    <meta property="og:title" content="Vesteros BG – уебсайтове, които се класират в Google">
+    <meta property="og:description" content="Сайт от 350 € за до 5 дни. SEO и AEO оптимизация е включена в цената.">
+    <meta property="og:url" content="https://vesterosbg.online/">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap&subset=cyrillic"
+          rel="stylesheet">
+    <style>
+    .hero{padding-top:260px}
+    </style>
+
 </head>
 <body>
 <header>
-<div class="wrap bar">
-<a class="brand" href="/" aria-label="Vesteros BG – начало"><img src="/static/img/brand/vesterosbg-brand-logo-new.svg" alt="Vesteros BG"></a>
-<nav aria-label="Основна навигация">
-<a href="#uslugi">Услуги</a><a href="#ceni">Цени</a><a href="#seo">SEO и AEO</a><a href="#proekti">Проекти</a><a href="#vaprosi">Въпроси</a>
-<a class="btn" href="#kontakt">Запитване</a>
-</nav>
-</div>
+    <div class="wrap bar">
+        <a class="brand" href="/" aria-label="Vesteros BG Ltd. – начало">
+            <img alt="Vesteros BG Ltd." src="/static/img/brand/vesterosbg-brand-logo.svg"></a>
+        <nav aria-label="Основна навигация">
+            <a href="#uslugi">Услуги</a><a href="#ceni">Цени</a><a href="#seo">SEO и AEO</a><a
+                href="#proekti">Проекти</a><a href="#vaprosi">Въпроси</a>
+            <a class="btn" href="#kontakt">Запитване</a>
+        </nav>
+    </div>
 </header>
 
 <main>
-<section class="hero">
-<div class="wrap">
-<div>
-<h1>Уебсайт, който се класира в Google – готов до 5 дни.</h1>
-<p>Изработваме и поддържаме бързи, адаптивни сайтове за малкия и средния бизнес. SEO и AEO оптимизацията е включена в цената.</p>
-<div class="cta"><a class="btn" href="#kontakt">Поискай оферта</a><a class="btn alt" href="#ceni">Виж цените</a></div>
-</div>
-<div class="build" role="img" aria-label="График на изработката: пет дни от заданието до пускането на сайта">
-<div class="chrome"><i></i><i></i><i></i><span>vashiat-sait.bg</span></div>
-<div class="days">
-<div class="day"><b>Ден 1</b><div><span>Задание и структура <small>план</small></span><div class="track"><em></em></div></div></div>
-<div class="day"><b>Ден 2</b><div><span>Дизайн <small>макет</small></span><div class="track"><em></em></div></div></div>
-<div class="day"><b>Ден 3</b><div><span>Разработка <small>код</small></span><div class="track"><em></em></div></div></div>
-<div class="day"><b>Ден 4</b><div><span>SEO и AEO <small>оптимизация</small></span><div class="track"><em></em></div></div></div>
-<div class="day"><b>Ден 5</b><div><span>Тест и пускане <small>онлайн</small></span><div class="track"><em></em></div></div></div>
-<p>Срокът започва след получаване на материалите.</p>
-</div>
-</div>
-</div>
-</section>
+    <section class="hero">
+        <div class="wrap">
+            <div>
+                <h1>Уебсайт, който се класира в Google – готов до 5 дни.</h1>
+                <p>Изработваме и поддържаме бързи, адаптивни сайтове за малкия и средния бизнес. SEO и AEO оптимизацията
+                    е включена в цената.</p>
+                <div class="cta"><a class="btn" href="#kontakt">Поискай оферта</a><a class="btn alt" href="#ceni">Виж
+                    цените</a></div>
+            </div>
+            <div class="build" role="img"
+                 aria-label="График на изработката: пет дни от заданието до пускането на сайта">
+                <div class="chrome"><i></i><i></i><i></i><span>vashiat-sait.bg</span></div>
+                <div class="days">
+                    <div class="day"><b>Ден 1</b>
+                        <div><span>Задание и структура <small>план</small></span>
+                            <div class="track"><em></em></div>
+                        </div>
+                    </div>
+                    <div class="day"><b>Ден 2</b>
+                        <div><span>Дизайн <small>макет</small></span>
+                            <div class="track"><em></em></div>
+                        </div>
+                    </div>
+                    <div class="day"><b>Ден 3</b>
+                        <div><span>Разработка <small>код</small></span>
+                            <div class="track"><em></em></div>
+                        </div>
+                    </div>
+                    <div class="day"><b>Ден 4</b>
+                        <div><span>SEO и AEO <small>оптимизация</small></span>
+                            <div class="track"><em></em></div>
+                        </div>
+                    </div>
+                    <div class="day"><b>Ден 5</b>
+                        <div><span>Тест и пускане <small>онлайн</small></span>
+                            <div class="track"><em></em></div>
+                        </div>
+                    </div>
+                    <p>Срокът започва след получаване на материалите.</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-<section id="uslugi">
-<div class="wrap">
-<h2>Какво правим за вас</h2>
-<p class="lead">От първата скица до сайт, който остава бърз, сигурен и актуален след пускането.</p>
-<div class="grid">
-<div class="item"><h3>Изработка на сайтове</h3><p>Визитки, фирмени сайтове и портфолиа с уникален дизайн, адаптиран за телефон, таблет и компютър.</p></div>
-<div class="item"><h3>SEO и AEO оптимизация</h3><p>Структура, скорост и съдържание, подготвени за Google и за отговорите на AI асистентите.</p></div>
-<div class="item"><h3>Поддръжка</h3><p>Обновяване на съдържание, архивиране, мониторинг и бързи корекции, когато имате нужда.</p></div>
-<div class="item"><h3>Допълнителни модули</h3><p>Добавяме функции към сайта – всеки модул е отделна услуга с ясна цена и срок.</p></div>
-</div>
-</div>
-</section>
+    <section id="uslugi">
+        <div class="wrap">
+            <h2>Какво правим за вас</h2>
+            <p class="lead">От първата скица до сайт, който остава бърз, сигурен и актуален след пускането.</p>
+            <div class="grid">
+                <div class="item"><h3>Изработка на сайтове</h3>
+                    <p>Визитки, фирмени сайтове и портфолиа с уникален дизайн, адаптиран за телефон, таблет и
+                        компютър.</p></div>
+                <div class="item"><h3>SEO и AEO оптимизация</h3>
+                    <p>Структура, скорост и съдържание, подготвени за Google и за отговорите на AI асистентите.</p>
+                </div>
+                <div class="item"><h3>Поддръжка</h3>
+                    <p>Обновяване на съдържание, архивиране, мониторинг и бързи корекции, когато имате нужда.</p></div>
+                <div class="item"><h3>Допълнителни модули</h3>
+                    <p>Добавяме функции към сайта – всеки модул е отделна услуга с ясна цена и срок.</p></div>
+            </div>
+        </div>
+    </section>
 
-<section id="ceni" class="price">
-<div class="wrap">
-<h2>Ясни цени и срокове</h2>
-<p class="lead">Без скрити такси. Знаете колко струва и кога е готово, преди да започнем.</p>
-<div class="plans">
-<div class="plan main">
-<h3>Уебсайт</h3>
-<div class="amt">350 € </div>
-<p class="time">Готов до 5 дни</p>
-<ul>
-<li>Уникален дизайн, адаптивен за всички устройства</li>
-<li>SEO и AEO оптимизация за позициониране в Google</li>
-<li>Бързо зареждане и хостинг настройка в Cloudflare</li>
-<li>Регистриране в Google Search Console</li>
-<li>SSL сертификат и основна сигурност</li>
-</ul>
-</div>
-<div class="plan">
-<h3>Допълнителен модул</h3>
-<div class="amt">100 € <small>за модул</small></div>
-<p class="time">Още до 5 дни</p>
-<ul>
-<li>Добавя се към нов или съществуващ сайт</li>
-<li>Включва настройка и тестване</li>
-<li>Оптимизиран за търсачки</li>
-</ul>
-</div>
-</div>
-<p class="note">Поддръжката се уговаря индивидуално според нуждите на сайта.</p>
-</div>
-</section>
+    <section id="ceni" class="price">
+        <div class="wrap">
+            <h2>Ясни цени и срокове</h2>
+            <p class="lead">Без скрити такси. Знаете колко струва и кога е готово, преди да започнем.</p>
+            <div class="plans">
+                <div class="plan main">
+                    <h3>Уебсайт</h3>
+                    <div class="amt">350 €</div>
+                    <p class="time">Готов до 5 дни</p>
+                    <ul>
+                        <li>Уникален дизайн, адаптивен за всички устройства</li>
+                        <li>SEO и AEO оптимизация за позициониране в Google</li>
+                        <li>Бързо зареждане и хостинг настройка в Cloudflare</li>
+                        <li>Регистриране в Google Search Console</li>
+                        <li>SSL сертификат и основна сигурност</li>
+                    </ul>
+                </div>
+                <div class="plan">
+                    <h3>Допълнителен модул</h3>
+                    <div class="amt">100 € <small>за модул</small></div>
+                    <p class="time">Още до 5 дни</p>
+                    <ul>
+                        <li>Добавя се към нов или съществуващ сайт</li>
+                        <li>Включва настройка и тестване</li>
+                        <li>Оптимизиран за търсачки</li>
+                    </ul>
+                </div>
+            </div>
+            <p class="note">Поддръжката се уговаря индивидуално според нуждите на сайта.</p>
+        </div>
+    </section>
 
-<section id="moduli">
-<div class="wrap">
-<h2>Примерни модули</h2>
-<p class="lead">Изберете само това, от което имате нужда. Не намирате вашия? Кажете ни и ще го изработим.</p>
-<ul class="mods" style="padding:0">
-<li>Онлайн магазин</li><li>Блог</li><li>Втори език</li><li>Резервации</li><li>Контактна форма с известия</li><li>Галерия</li><li>Админ панел</li><li>Интеграция с външни услуги</li>
-</ul>
-</div>
-</section>
+    <section id="moduli">
+        <div class="wrap">
+            <h2>Примерни модули</h2>
+            <p class="lead">Изберете само това, от което имате нужда. Не намирате вашия? Кажете ни и ще го
+                изработим.</p>
+            <ul class="mods" style="padding:0">
+                <li>Онлайн магазин</li>
+                <li>Блог</li>
+                <li>Втори език</li>
+                <li>Резервации</li>
+                <li>Контактна форма с известия</li>
+                <li>Галерия</li>
+                <li>Админ панел</li>
+                <li>Интеграция с външни услуги</li>
+            </ul>
+        </div>
+    </section>
 
-<section id="seo" class="seo">
-<div class="wrap two">
-<div>
-<h2>Намират ви в Google и в AI отговорите</h2>
-<p>Много хора вече питат ChatGPT, Gemini или Google AI вместо да търсят сами. Оптимизираме сайта и за двата начина, така че да бъдете цитирани, когато клиентите ви търсят.</p>
-<p>Оптимизацията е част от изработката, а не отделна услуга.</p>
-</div>
-<div class="cols">
-<div><h3>SEO</h3><p>Заглавия, мета описания, структура на страниците, карта на сайта, скорост и мобилна версия.</p></div>
-<div><h3>AEO</h3><p>Структурирани данни, ясни отговори на въпроси на клиентите и съдържание, което асистентите лесно разбират и цитират.</p></div>
-</div>
-</div>
-</section>
+    <section id="seo" class="seo">
+        <div class="wrap two">
+            <div>
+                <h2>Намират ви в Google и в AI отговорите</h2>
+                <p>Много хора вече питат ChatGPT, Gemini или Google AI вместо да търсят сами. Оптимизираме сайта и за
+                    двата начина, така че да бъдете цитирани, когато клиентите ви търсят.</p>
+                <p>Оптимизацията е част от изработката, а не отделна услуга.</p>
+            </div>
+            <div class="cols">
+                <div><h3>SEO</h3>
+                    <p>Заглавия, мета описания, структура на страниците, карта на сайта, скорост и мобилна версия.</p>
+                </div>
+                <div><h3>AEO</h3>
+                    <p>Структурирани данни, ясни отговори на въпроси на клиентите и съдържание, което асистентите лесно
+                        разбират и цитират.</p></div>
+            </div>
+        </div>
+    </section>
 
-<section id="proekti">
-<div class="wrap">
-<h2>Избрани проекти</h2>
-<p class="lead">Примери от нашата работа.</p>
-<!-- Замени с реални проекти: сложи екранна снимка вместо .shot и линк към сайта -->
-<div class="grid">
-<article class="work"><div class="shot">Проект 1</div><div><h3>Фирмен сайт</h3><p>Описание на проекта и постигнатия резултат.</p></div></article>
-<article class="work"><div class="shot">Проект 2</div><div><h3>Онлайн магазин</h3><p>Описание на проекта и постигнатия резултат.</p></div></article>
-<article class="work"><div class="shot">Проект 3</div><div><h3>Портфолио</h3><p>Описание на проекта и постигнатия резултат.</p></div></article>
-</div>
-</div>
-</section>
+    <section id="proekti">
+        <div class="wrap">
+            <h2>Избрани проекти</h2>
+            <p class="lead">Примери от нашата работа.</p>
+            <!-- Замени с реални проекти: сложи екранна снимка вместо .shot и линк към сайта -->
+            <div class="grid">
+                <article class="work">
+                    <div class="shot">Проект 1</div>
+                    <div><h3>Фирмен сайт</h3>
+                        <p>Описание на проекта и постигнатия резултат.</p></div>
+                </article>
+                <article class="work">
+                    <div class="shot">Проект 2</div>
+                    <div><h3>Онлайн магазин</h3>
+                        <p>Описание на проекта и постигнатия резултат.</p></div>
+                </article>
+                <article class="work">
+                    <div class="shot">Проект 3</div>
+                    <div><h3>Портфолио</h3>
+                        <p>Описание на проекта и постигнатия резултат.</p></div>
+                </article>
+            </div>
+        </div>
+    </section>
 
-<section id="vaprosi">
-<div class="wrap">
-<h2>Често задавани въпроси</h2>
-<p class="lead">Отговорите на най-честите въпроси преди старт.</p>
-<details><summary>Колко струва изработката на уебсайт?</summary><p>Изработката на уебсайт струва 350 € и включва SEO и AEO оптимизация. Всеки допълнителен модул е 100 €.</p></details>
-<details><summary>За какво време е готов сайтът?</summary><p>До 5 дни след получаване на материалите. Всеки допълнителен модул също отнема до 5 дни.</p></details>
-<details><summary>Какво е AEO оптимизация?</summary><p>AEO (Answer Engine Optimization) подготвя сайта да бъде цитиран в отговорите на AI асистенти и в блоковете с отговори на Google.</p></details>
-<details><summary>Предлагате ли поддръжка след пускането?</summary><p>Да. Поддържаме сайтове, като обновяваме съдържанието, следим за грешки и правим корекции. Цената се уговаря според нуждите.</p></details>
-<details><summary>Мога ли да добавям модули по-късно?</summary><p>Да. Модули могат да се добавят към нов или вече съществуващ сайт по всяко време.</p></details>
-</div>
-</section>
+    <section id="vaprosi">
+        <div class="wrap">
+            <h2>Често задавани въпроси</h2>
+            <p class="lead">Отговорите на най-честите въпроси преди старт.</p>
+            <details>
+                <summary>Колко струва изработката на уебсайт?</summary>
+                <p>Изработката на уебсайт струва 350 € и включва SEO и AEO оптимизация. Всеки допълнителен модул е 100
+                    €.</p></details>
+            <details>
+                <summary>За какво време е готов сайтът?</summary>
+                <p>До 5 дни след получаване на материалите. Всеки допълнителен модул също отнема до 5 дни.</p></details>
+            <details>
+                <summary>Какво е AEO оптимизация?</summary>
+                <p>AEO (Answer Engine Optimization) подготвя сайта да бъде цитиран в отговорите на AI асистенти и в
+                    блоковете с отговори на Google.</p></details>
+            <details>
+                <summary>Предлагате ли поддръжка след пускането?</summary>
+                <p>Да. Поддържаме сайтове, като обновяваме съдържанието, следим за грешки и правим корекции. Цената се
+                    уговаря според нуждите.</p></details>
+            <details>
+                <summary>Мога ли да добавям модули по-късно?</summary>
+                <p>Да. Модули могат да се добавят към нов или вече съществуващ сайт по всяко време.</p></details>
+        </div>
+    </section>
 
-<section id="kontakt" class="contact">
-<div class="wrap">
-<h2>Разкажете ни за вашия проект</h2>
-<p>Изпратете кратко описание и ще получите оферта със срок и цена.</p>
-<!-- Смени имейла с реалния -->
-<a class="btn" href="mailto:office@vesterosbg.online?subject=Запитване за уебсайт">Изпрати запитване</a>
-</div>
-</section>
+    <section id="kontakt" class="contact">
+        <div class="wrap">
+            <h2>Разкажете ни за вашия проект</h2>
+            <p>Изпратете кратко описание и ще получите оферта със срок и цена.</p>
+            <!-- Смени имейла с реалния -->
+            <a class="btn" href="mailto:office@vesterosbg.online?subject=Запитване за уебсайт">Изпрати запитване</a>
+        </div>
+    </section>
 </main>
 
 <footer>
-<div class="wrap"><span>© <span id="y">2026</span> Vesteros BG. Всички права запазени.</span><span>vesterosbg.online</span></div>
+    <div class="wrap"><span>© <span
+            id="y">2026</span> Vesteros BG. Всички права запазени.</span><span>vesterosbg.online</span></div>
 </footer>
 
-<script>document.getElementById('y').textContent=new Date().getFullYear()</script>
+<script>document.getElementById('y').textContent = new Date().getFullYear()</script>
 <script type="application/ld+json">
-{"@context":"https://schema.org","@graph":[
-{"@type":"ProfessionalService","@id":"https://vesterosbg.online/#org","name":"Vesteros BG","url":"https://vesterosbg.online/","description":"Изработка и поддръжка на уебсайтове с включена SEO и AEO оптимизация.","areaServed":{"@type":"Country","name":"България"},"inLanguage":"bg","priceRange":"€€",
-"hasOfferCatalog":{"@type":"OfferCatalog","name":"Услуги","itemListElement":[
-{"@type":"Offer","priceCurrency":"EUR","price":"350","itemOffered":{"@type":"Service","name":"Изработка на уебсайт с SEO и AEO оптимизация","description":"Готов до 5 дни."}},
-{"@type":"Offer","priceCurrency":"EUR","price":"100","itemOffered":{"@type":"Service","name":"Допълнителен модул за уебсайт","description":"Готов до 5 дни."}}]}},
-{"@type":"WebSite","@id":"https://vesterosbg.online/#site","url":"https://vesterosbg.online/","name":"Vesteros BG","inLanguage":"bg"},
-{"@type":"FAQPage","mainEntity":[
-{"@type":"Question","name":"Колко струва изработката на уебсайт?","acceptedAnswer":{"@type":"Answer","text":"Изработката на уебсайт струва 350 € и включва SEO и AEO оптимизация. Всеки допълнителен модул е 100 €."}},
-{"@type":"Question","name":"За какво време е готов сайтът?","acceptedAnswer":{"@type":"Answer","text":"До 5 дни след получаване на материалите. Всеки допълнителен модул също отнема до 5 дни."}},
-{"@type":"Question","name":"Какво е AEO оптимизация?","acceptedAnswer":{"@type":"Answer","text":"AEO (Answer Engine Optimization) подготвя сайта да бъде цитиран в отговорите на AI асистенти и в блоковете с отговори на Google."}},
-{"@type":"Question","name":"Предлагате ли поддръжка след пускането?","acceptedAnswer":{"@type":"Answer","text":"Да. Поддържаме сайтове, като обновяваме съдържанието, следим за грешки и правим корекции. Цената се уговаря според нуждите."}},
-{"@type":"Question","name":"Мога ли да добавям модули по-късно?","acceptedAnswer":{"@type":"Answer","text":"Да. Модули могат да се добавят към нов или вече съществуващ сайт по всяко време."}}]}
-]}
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "ProfessionalService",
+                "@id": "https://vesterosbg.online/#org",
+                "name": "Vesteros BG",
+                "url": "https://vesterosbg.online/",
+                "description": "Изработка и поддръжка на уебсайтове с включена SEO и AEO оптимизация.",
+                "areaServed": {
+                    "@type": "Country",
+                    "name": "България"
+                },
+                "inLanguage": "bg",
+                "priceRange": "€€",
+                "hasOfferCatalog": {
+                    "@type": "OfferCatalog",
+                    "name": "Услуги",
+                    "itemListElement": [
+                        {
+                            "@type": "Offer",
+                            "priceCurrency": "EUR",
+                            "price": "350",
+                            "itemOffered": {
+                                "@type": "Service",
+                                "name": "Изработка на уебсайт с SEO и AEO оптимизация",
+                                "description": "Готов до 5 дни."
+                            }
+                        },
+                        {
+                            "@type": "Offer",
+                            "priceCurrency": "EUR",
+                            "price": "100",
+                            "itemOffered": {
+                                "@type": "Service",
+                                "name": "Допълнителен модул за уебсайт",
+                                "description": "Готов до 5 дни."
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "@type": "WebSite",
+                "@id": "https://vesterosbg.online/#site",
+                "url": "https://vesterosbg.online/",
+                "name": "Vesteros BG",
+                "inLanguage": "bg"
+            },
+            {
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "Колко струва изработката на уебсайт?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Изработката на уебсайт струва 350 € и включва SEO и AEO оптимизация. Всеки допълнителен модул е 100 €."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "За какво време е готов сайтът?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "До 5 дни след получаване на материалите. Всеки допълнителен модул също отнема до 5 дни."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Какво е AEO оптимизация?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "AEO (Answer Engine Optimization) подготвя сайта да бъде цитиран в отговорите на AI асистенти и в блоковете с отговори на Google."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Предлагате ли поддръжка след пускането?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Да. Поддържаме сайтове, като обновяваме съдържанието, следим за грешки и правим корекции. Цената се уговаря според нуждите."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Мога ли да добавям модули по-късно?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Да. Модули могат да се добавят към нов или вече съществуващ сайт по всяко време."
+                        }
+                    }
+                ]
+            }
+        ]
+    }
 </script>
 </body>
 </html>

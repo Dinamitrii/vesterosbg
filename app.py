@@ -98,8 +98,8 @@ load_env_file(BASE_DIR / ".env")
 if not os.environ.get("SECRET_KEY"):
     os.environ["SECRET_KEY"] = secrets.token_urlsafe(48)
 DB_PATH = Path(os.environ.get("CLIENTS_DB", BASE_DIR / "clients.sqlite3"))
-CATEGORY_IMAGE_DIR = BASE_DIR / "static" / "uploads" / "categories"
-ALLOWED_IMAGE_FORMATS = {"JPEG", "PNG", "WEBP"}
+CATEGORY_IMAGE_DIR = BASE_DIR / "static" / "img" / "brand" / "favicon"
+ALLOWED_IMAGE_FORMATS = {"JPEG", "PNG", "WEBP", "AVIF", "JPG"}
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
 MAX_IMAGE_EDGE = 2400
 app = Flask(__name__)
@@ -201,8 +201,8 @@ def public_site_url():
 def favicon_asset(filename):
     allowed_files = {
         "favicon.ico", "favicon-16x16.png", "favicon-32x32.png",
-        "apple-touch-icon.png", "android-chrome-192x192.png",
-        "android-chrome-512x512.png", "site.webmanifest",
+        "apple-touch-icon.png", "web-app-manifest-192x192.png",
+        "web-app-manifest-512x512.png", "site.webmanifest",
     }
     if filename not in allowed_files:
         abort(404)
