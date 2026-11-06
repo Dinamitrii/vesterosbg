@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-<html lang="bg">
+<html lang="bg-BG">
 <head>
 <meta charset="utf-8">
+
+    {% include "_favicons.html" %}
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Изработка и поддръжка на уебсайтове от 350 € | Vesteros BG</title>
 <meta name="description" content="Vesteros BG изработва и поддържа бързи уебсайтове с включена SEO и AEO оптимизация. Сайт от 350 € за до 5 дни, допълнителен модул по 100 €.">
@@ -13,7 +15,6 @@
 <meta property="og:description" content="Сайт от 350 € за до 5 дни. SEO и AEO оптимизация е включена в цената.">
 <meta property="og:url" content="https://vesterosbg.online/">
 <meta name="robots" content="index, follow, max-image-preview:large">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2314202B'/%3E%3Cpath d='M7 9l9 15 9-15' fill='none' stroke='%23E8A33D' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap&subset=cyrillic" rel="stylesheet">
@@ -23,7 +24,7 @@
 *{box-sizing:border-box;margin:0}
 html{scroll-behavior:smooth}
 body{font:400 1.0625rem/1.65 var(--body);color:var(--ink);background:var(--paper)}
-h1,h2,h3{font-family:var(--head);line-height:1.1;letter-spacing:-.02em}
+h1,h2,h3{font-family:var(--head),serif;line-height:1.1;letter-spacing:-.02em}
 a{color:inherit}
 :focus-visible{outline:3px solid var(--amber);outline-offset:3px}
 .wrap{max-width:1100px;margin:0 auto;padding:0 22px}
@@ -32,10 +33,9 @@ h2{font-size:clamp(1.9rem,4vw,2.8rem);font-weight:800;margin-bottom:14px;max-wid
 .lead{color:var(--ink2);max-width:62ch;margin-bottom:40px}
 /* header */
 header{position:sticky;top:0;z-index:10;background:rgba(242,244,246,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
-.bar{display:flex;align-items:center;justify-content:space-between;height:66px}
-.brand{display:flex;align-items:center;gap:10px;text-decoration:none;font:800 1.2rem var(--head)}
-.brand img,.mark{width:34px;height:34px;border-radius:8px}
-.mark{background:var(--ink);display:grid;place-items:center}
+.bar{display:flex;align-items:flex-start;justify-content:flex-end;padding:10px 0}
+.brand{position:absolute;top:0;left:0;display:flex;align-items:center;gap:10px;text-decoration:none;font:800 1.2rem var(--head)}
+.brand img{height:120px;width:auto;border-radius:8px}
 nav{display:flex;gap:26px;align-items:center}
 nav a{text-decoration:none;font-weight:500;font-size:.97rem}
 nav a:hover{color:var(--teal)}
@@ -127,8 +127,7 @@ section{padding:60px 0}
 <body>
 <header>
 <div class="wrap bar">
-<!-- Когато имаш лого: замени <span class="mark">…</span> с <img src="/logo.svg" alt="Vesteros BG лого"> -->
-<a class="brand" href="/" aria-label="Vesteros BG – начало"><span class="mark"><svg width="20" height="20" viewBox="0 0 32 32" aria-hidden="true"><path d="M6 8l10 17L26 8" fill="none" stroke="#E8A33D" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Vesteros BG</a>
+<a class="brand" href="/" aria-label="Vesteros BG – начало"><img src="/static/img/brand/vesterosbg-brand-logo-new.svg" alt="Vesteros BG"></a>
 <nav aria-label="Основна навигация">
 <a href="#uslugi">Услуги</a><a href="#ceni">Цени</a><a href="#seo">SEO и AEO</a><a href="#proekti">Проекти</a><a href="#vaprosi">Въпроси</a>
 <a class="btn" href="#kontakt">Запитване</a>
