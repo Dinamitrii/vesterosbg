@@ -1,0 +1,6 @@
+/clients.sqlite3
+.env
+.venv
+.env.example
+# Added by ggshield
+.cache_ggshield
