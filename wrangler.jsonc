@@ -12,5 +12,11 @@
       "persist": true
     },
     "previews": {}
+  },
+  "name": "vesterosbg",
+  "compatibility_date": "2026-11-13",
+  "main": "app.py",
+  "assets": {
+    "directory": "./static"
   }
 }
