@@ -28,14 +28,14 @@
     </style>
 
     <link rel="preload" as="image" href="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }}"
-          imagesrcset="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }} 160w,{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }} 320w"
+          imagesrcset="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }} 160w, {{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }} 320w"
           imagesizes="(max-width: 700px) 88px, 96px" fetchpriority="high">
 </head>
 <body>
 <header>
     <div class="wrap bar">
         <a class="brand" href="/" aria-label="Vesteros BG Ltd. – начало">
-            <img alt="Vesteros BG Ltd." src="/static/img/brand/vesterosbg-brand-logo.svg"></a>
+            <img alt="Vesteros BG Ltd." src="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }}" width="96" height="96"></a>
         <nav aria-label="Основна навигация">
             <a href="#uslugi">Услуги</a>
             <a href="#ceni">Цени</a>
@@ -187,19 +187,31 @@
             <!-- Замени с реални проекти: сложи екранна снимка вместо .shot и линк към сайта -->
             <div class="grid">
                 <article class="work">
-                    <div class="shot">Проект 1</div>
-                    <div><h3>Фирмен сайт</h3>
-                        <p>Описание на проекта и постигнатия резултат.</p></div>
+                    <div class="shot">
+                        <iframe src="https://firmi.online" title="Project 1 - firmi.online" loading="lazy"></iframe>
+                    </div>
+                    <div>
+                        <h3>Фирмен сайт</h3>
+                        <p>Project 1: Predictorian — интерактивен онлайн каталог услуги.</p>
+                    </div>
                 </article>
                 <article class="work">
-                    <div class="shot">Проект 2</div>
-                    <div><h3>Онлайн магазин</h3>
-                        <p>Описание на проекта и постигнатия резултат.</p></div>
+                    <div class="shot">
+                        <iframe src="https://e-jelezaria.bg" title="Project 2 - e-jelezaria.bg" loading="lazy"></iframe>
+                    </div>
+                    <div>
+                        <h3>Онлайн магазин</h3>
+                        <p>Project 2: Ежелезария — онлайн магазин за електрозап характерен материали.</p>
+                    </div>
                 </article>
                 <article class="work">
-                    <div class="shot">Проект 3</div>
-                    <div><h3>Портфолио</h3>
-                        <p>Описание на проекта и постигнатия резултат.</p></div>
+                    <div class="shot">
+                        <iframe src="https://vesterosbg.online" title="Project 3 - vesterosbg.online" loading="lazy"></iframe>
+                    </div>
+                    <div>
+                        <h3>Портфолио</h3>
+                        <p>Project 3: Vesteros BG — уебсайт за промоинициране и продакшъ.</p>
+                    </div>
                 </article>
             </div>
         </div>

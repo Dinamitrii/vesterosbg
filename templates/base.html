@@ -27,17 +27,15 @@
     {% endif %}
 
     <link rel="apple-touch-icon" sizes="180x180"
-          href="{{ url_for('static', filename='img/favicon/apple-icon-180x180.png') }}"/>
+          href="{{ url_for('favicon_asset', filename='apple-touch-icon.png') }}"/>
     <link rel="icon" type="image/png" sizes="32x32"
-          href="{{ url_for('static', filename='img/favicon/favicon-32x32.png') }}"/>
+          href="{{ url_for('favicon_asset', filename='favicon-32x32.png') }}"/>
     <link rel="icon" type="image/png" sizes="16x16"
-          href="{{ url_for('static', filename='img/favicon/favicon-16x16.png') }}"/>
-    <link rel="manifest" href="{{ url_for('static', filename='img/favicon/manifest.json') }}"/>
-    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon/favicon.ico') }}"/>
+          href="{{ url_for('favicon_asset', filename='favicon-16x16.png') }}"/>
+    <link rel="manifest" href="{{ url_for('favicon_asset', filename='site.webmanifest') }}"/>
+    <link rel="shortcut icon" href="{{ url_for('favicon_asset', filename='favicon.ico') }}"/>
 
     <meta name="msapplication-TileColor" content="#00aba9"/>
-    <meta name="msapplication-config"
-          content="{{ url_for('static', filename='img/favicon/browserconfig.xml') }}"/>
     <meta name="theme-color" content="#ffffff"/>
     <title>
 
@@ -54,10 +52,8 @@
                  class="brand-logo"
                  height="52"
                  sizes="69px"
-                 src="{{ url_for('static', filename='img/brand/logo-140.png') }}"
-                 srcset="{{ url_for('static', filename='img/brand/logo-70.webp') }} 70w,
-                {{ url_for('static', filename='img/brand/logo-140.webp') }} 140w,
-                {{ url_for('static', filename='img/brand/logo-210.webp') }} 210w"
+                 src="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }}"
+                 srcset="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.png') }} 1x"
                  width="69">
             <span class="brand-text">Железария <span>Дианабад</span></span>
         </a>
