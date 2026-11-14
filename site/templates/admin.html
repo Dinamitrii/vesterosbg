@@ -9,9 +9,12 @@
 </head>
 <body>
 <main class="wrap admin">
-  <div class="row admin-heading">
-    <div><div class="eyebrow" style="color:#596b2c">Администрация</div><h1>Управление на ценоразписа</h1></div>
-    <a href="/" class="contact">Към сайта ↗</a><a href="/admin/logout">Изход</a>
+  <div class="admin-heading">
+    <div><div class="eyebrow">Администрация</div><h1>Управление на ценоразписа</h1></div>
+    <div class="admin-actions">
+      <a href="/" class="admin-link">Към сайта ↗</a>
+      <a href="/admin/logout" class="btn alt">Изход</a>
+    </div>
   </div>
   {% for message in get_flashed_messages() %}<div class="flash">{{ message }}</div>{% endfor %}
 
@@ -58,7 +61,7 @@
         <button class="submit">Запази реда</button>
       </form>
       <form method="post" action="/admin/category/{{ category.id }}/rename" class="row"><input name="name" value="{{ category.name }}" required aria-label="Ново име на категорията"><button class="submit">Преименувай</button></form>
-      <form method="post" action="/admin/category/{{ category.id }}/delete" onsubmit="return confirm('Да изтрия ли категорията, услугите и снимките в нея?')"><button class="danger">Изтрий категория</button></form>
+      <form method="post" action="/admin/category/{{ category.id }}/delete" onsubmit="return confirm('Да изтрия ли категорията, услугите и снимките в нея?')"><button class="btn danger">Изтрий категория</button></form>
     </div>
 
     <form method="post" action="/admin/service" class="panel service-form">
@@ -87,7 +90,7 @@
           <div><label>Наименование</label><label>
             <input name="name" value="{{ service.name }}" required>
           </label></div>
-          <div><label>Цена в евро (празно = по договаряне)</label><label>
+          <div><label>Цена в евро (празно = по договора)</label><label>
             <input name="price" type="number" step="0.01" min="0" value="{{ service.price if service.price is not none else '' }}">
           </label></div>
           <div><label>Мерна единица</label><label>
@@ -97,10 +100,10 @@
             <input name="description" value="{{ service.description }}">
           </label></div>
         </div>
-        <p><button class="submit">Запази промените</button> <button class="danger" formaction="/admin/service/{{ service.id }}/delete" formmethod="post" onclick="return confirm('Да изтрия ли услугата и нейните снимки?')">Изтрий</button></p>
+        <p><button class="submit">Запази промените</button> <button class="btn danger" formaction="/admin/service/{{ service.id }}/delete" formmethod="post" onclick="return confirm('Да изтрия ли услугата и нейните снимки?')">Изтрий</button></p>
       </form>
 
-      <section class="image-manager">
+      <section class="panel image-manager">
         <h3>Галерия на „{{ service.name }}“</h3>
         {% if service.images %}
         <div class="admin-image-grid">
@@ -118,7 +121,7 @@
             </form>
             <div class="image-actions">
               <a class="small-action" href="/admin/category-image/{{ image.id }}/export">Изтегли WebP</a>
-              <form method="post" action="/admin/category-image/{{ image.id }}/delete" onsubmit="return confirm('Да изтрия ли снимката?')"><button class="danger">Изтрий снимката</button></form>
+              <form method="post" action="/admin/category-image/{{ image.id }}/delete" onsubmit="return confirm('Да изтрия ли снимката?')"><button class="btn danger">Изтрий снимката</button></form>
             </div>
           </article>
           {% endfor %}
@@ -139,6 +142,35 @@
     {% endfor %}
   </section>
   {% endfor %}
+
+  {% if clients %}
+  <section class="panel">
+    <h2>Клиенти / заявки</h2>
+    {% if clients %}
+    <div class="field-row">
+      {% for c in clients %}
+      <div class="client-card">
+        <strong>{{ c.name }}</strong>
+        <span class="hint">Телефон: {{ c.phone }} · Email: {{ c.email or 'няма' }}</span>
+        <span class="hint">Съобщение: {{ c.message[:80] }}{% if c.message|length > 80 %}...{% endif %}</span>
+        <div class="field-row gap-14 mt-18">
+          <form method="post" action="/admin/client/{{ c.id }}/status" class="row">
+            <select name="status">
+              <option value="nov" {% if c.status == 'nov' %}selected{% endif %}>нов</option>
+              <option value="pq" {% if c.status == 'pq' %}selected{% endif %}>в обработка</option>
+              <option value="zatvorena" {% if c.status == 'zatvorena' %}selected{% endif %}>затворена</option>
+            </select>
+            <button class="submit" type="submit">Запази</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="hint">Все още няма запишани клиенти. Чакайте свързвания от потребители.</p>
+    {% endif %}
+  </section>
+  {% endif %}
 </main>
 </body>
 </html>
