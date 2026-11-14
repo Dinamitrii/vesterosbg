@@ -183,6 +183,16 @@ def init_db():
                     conn.execute("INSERT INTO services(category_id,name,description,price,unit,position) VALUES (?,?,?,?,?,?)", (cur.lastrowid, name, description, price, unit, pos))
         for key, value in (("company_name", "Вътрешни ремонти"), ("legal_name", "Вионекс ДГ ЕООД"), ("eik", "208377941"), ("address", "гр. София, район Студентски, ж.к. Витоша, бл. 1, ет. 2, ап. 6"), ("phone", "359888123456"), ("city", "София и областта")):
             conn.execute("INSERT OR IGNORE INTO settings(key,value) VALUES (?,?)", (key, value))
+        conn.execute(
+            "CREATE TABLE IF NOT EXISTS clients ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+            "name TEXT NOT NULL,"
+            "phone TEXT NOT NULL,"
+            "email TEXT NOT NULL DEFAULT '',"
+            "message TEXT NOT NULL DEFAULT '',"
+            "status TEXT NOT NULL DEFAULT 'nov',"
+            "created_at TEXT NOT NULL DEFAULT (datetime('now')))"
+        )
 
 
 init_db()
@@ -206,12 +216,12 @@ def favicon_asset(filename):
     }
     if filename not in allowed_files:
         abort(404)
-    return send_from_directory(BASE_DIR / "favicon_io", filename)
+    return send_from_directory(BASE_DIR / "static" / "img" / "favicon", filename)
 
 
 @app.get("/favicon.ico")
 def root_favicon():
-    return send_from_directory(BASE_DIR / "favicon", "favicon.ico")
+    return send_from_directory(BASE_DIR / "static" / "img" / "favicon", "favicon.ico")
 
 
 @app.get("/ai-catalog.json")
@@ -307,6 +317,64 @@ def contact_page():
         directions=directions,
         canonical_url=f"{public_site_url()}{url_for('contact_page')}",
     )
+
+
+@app.post("/contact")
+def contact_submit():
+    name = request.form.get("name", "").strip()
+    phone = request.form.get("phone", "").strip()
+    email = request.form.get("email", "").strip()
+    message = request.form.get("message", "").strip()
+    if not name or not phone or not message:
+        flash("Името, телефона и съобщението са задължителни.")
+        return redirect(url_for("contact_page"))
+    with db() as conn:
+        conn.execute(
+            "INSERT INTO clients(name, phone, email, message, status) VALUES (?, ?, ?, ?, 'nov')",
+            (name, phone, email, message),
+        )
+    flash("Благодарим, заявката е изпратена. Ще се свържем с вас.")
+    return redirect(url_for("contact_page"))
+
+
+def admin_required(fn):
+    @wraps(fn)
+    def wrapped(*args, **kwargs):
+        if not session.get("admin"):
+            return redirect(url_for("admin_login"))
+        return fn(*args, **kwargs)
+    return wrapped
+@app.get("/admin/clients")
+@admin_required
+def admin_clients():
+    with db() as conn:
+        clients = conn.execute("SELECT * FROM clients ORDER BY id DESC").fetchall()
+        settings = settings_dict(conn)
+    return render_template("admin.html", clients=clients, settings=settings)
+
+
+@app.get("/admin/client/<int:client_id>")
+@admin_required
+def admin_client_detail(client_id):
+    with db() as conn:
+        client = conn.execute("SELECT * FROM clients WHERE id=?", (client_id,)).fetchone()
+        if not client:
+            abort(404)
+        conn.execute("UPDATE clients SET status='pq' WHERE id=?", (client_id,))
+        conn.execute("INSERT OR IGNORE INTO settings(key,value) VALUES('last_client_view',?)", (client_id,))
+    return render_template("admin_client.html", client=client)
+
+
+@app.post("/admin/client/<int:client_id>/status")
+@admin_required
+def admin_client_status(client_id):
+    status = request.form.get("status", "").strip()
+    if status not in {"nov", "pq", "zatvorena"}:
+        status = "pq"
+    with db() as conn:
+        conn.execute("UPDATE clients SET status=?", (status, client_id))
+    flash("Статусът е обновен.")
+    return redirect(url_for("admin_clients"))
 
 
 def sitemap_image_url(filename, base_url):
@@ -436,7 +504,7 @@ def sitemap():
 
 @app.get("/llms.txt")
 def llms_txt():
-    return send_from_directory(BASE_DIR, "llms.txt", mimetype="text/plain")
+    return send_from_directory(BASE_DIR / "static", "llms.txt", mimetype="text/plain")
 
 
 @app.get("/robots.txt")
@@ -446,13 +514,6 @@ def robots():
     return Response(body, mimetype="text/plain")
 
 
-def admin_required(fn):
-    @wraps(fn)
-    def wrapped(*args, **kwargs):
-        if not session.get("admin"):
-            return redirect(url_for("admin_login"))
-        return fn(*args, **kwargs)
-    return wrapped
 
 
 @app.route("/admin", methods=["GET", "POST"])

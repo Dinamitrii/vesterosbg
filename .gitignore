@@ -4,3 +4,8 @@
 .env.example
 # Added by ggshield
 .cache_ggshield
+
+# Python cache and local server logs
+__pycache__/
+*.log
+server.log

@@ -1,0 +1,8 @@
+{
+    "name": "vesterosbg",
+    "compatibility_date": "2026-11-13",
+    "compatibility_flags": ["python_workers"],
+    "assets": {
+      "directory": "./site"
+    }
+  }

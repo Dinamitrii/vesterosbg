@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  {% include "_favicons.html" %}
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Контакти · {{ settings.company_name }}</title>
+  <meta name="description" content="Телефон, адрес и връзка с {{ settings.company_name }} в {{ settings.city }}.">
+  <link rel="canonical" href="{{ canonical_url }}">
+  {% include "_performance_head.html" %}
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand brand-logo" href="{{ url_for('index') }}" aria-label="Vesteros BG Ltd. — начало">
+      <img src="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }}" width="96" height="96" alt="Vesteros BG Ltd." srcset="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }} 160w, {{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }} 320w" sizes="(max-width: 700px) 88px, 96px" decoding="async" fetchpriority="high">
+    </a>
+    <p class="brand-motto">НИЕ МОЖЕЩИТЕ ПРАВИМ НЕВЪЗМОЖНОТО ЗА ВАС ИМАЩИТЕ</p>
+    <div class="header-tools">
+      <nav class="nav">
+        <a href="{{ url_for('index') }}#uslugi">Услуги и цени</a>
+        <a href="{{ url_for('contact_page') }}" aria-current="page">Контакти</a>
+      </nav>
+      <form id="site-search-form" class="site-search" role="search" method="get" action="{{ url_for('index') }}#uslugi">
+        <label class="sr-only" for="site-search">Търсене в услугите и категориите</label>
+        <input id="site-search" type="search" name="q" placeholder="Търси услуга…" autocomplete="off">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+      </form>
+      <a class="contact" href="{{ wa }}" target="_blank" rel="noopener">Пиши ни в WhatsApp ↗</a>
+    </div>
+  </header>
+  <main>
+<div class="contact-grid"><div class="contact-info"><h3>{{ settings.legal_name }}</h3><p>ЕИК: {{ settings.eik }}</p><p><b>Контакт:</b><br><a href="tel:+359876641667">+359 876 641 667 · Камен Караиванов</a></p><p><b>Друг телефон:</b><br><a href="tel:+35876641667">+358 766 416 67</a></p><p><b>Адрес:</b><br>{{ settings.address }}</p><p><b>Район на работа:</b><br>{{ settings.city }}</p><div class="map-actions"><a class="contact" href="{{ directions }}" target="_blank" rel="noopener">Упътвания в Google Maps ↗</a><a class="btn" style="background:#0f7a43;color:white" href="{{ wa }}" target="_blank" rel="noopener">WhatsApp ↗</a></div></div><div><iframe class="map" title="Карта с адреса на фирмата" src="{{ map_embed }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe></div></div></section>
+  <section class="section" id="contact-form">
+    <div class="section-head"><div><div class="eyebrow" style="color:#596b2c">Форма за контакт</div><h1>Изпратете заявка</h1><p>Заповяваме въпросни данни вътре в системата — няма нужда да се регистрирате.</p></div></div>
+    <form method="post" action="{{ url_for('contact_submit') }}" class="contact-form" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div style="display:grid;gap:8px">
+        <label for="name">Име <span style="color:#B7C4D0">*</span></label>
+        <input id="name" name="name" type="text" required style="padding:12px 14px;border:1px solid #D5DBE1;border-radius:8px;font:inherit">
+      </div>
+      <div style="display:grid;gap:8px">
+        <label for="phone">Телефон <span style="color:#B7C4D0">*</span></label>
+        <input id="phone" name="phone" type="tel" required style="padding:12px 14px;border:1px solid #D5DBE1;border-radius:8px;font:inherit">
+      </div>
+      <div style="display:grid;gap:8px">
+        <label for="email">Email (по избор)</label>
+        <input id="email" name="email" type="email" style="padding:12px 14px;border:1px solid #D5DBE1;border-radius:8px;font:inherit">
+      </div>
+      <div style="display:grid;gap:8px">
+        <label for="message">Съобщение <span style="color:#B7C4D0">*</span></label>
+        <textarea id="message" name="message" rows="5" required style="padding:12px 14px;border:1px solid #D5DBE1;border-radius:8px;font:inherit"></textarea>
+      </div>
+      <div style="grid-column:1/-1;text-align:right">
+        <button class="submit" style="padding:14px 26px;border-radius:8px;border:0;background:#172321;color:#fff;font-weight:700">Изпрати заявка</button>
+        <p class="hint" style="color:#59645f;margin-top:8px">Натиснете «Изпрати заявка» и ние ще се свържем със вас във вечеря.</p>
+      </div>
+    </form>
+  </section>
+</main>
+  <footer class="footer">© {{ settings.company_name }} · {{ settings.city }} · Вестерос БГ Еоод © 2026 г. · <a href="{{ url_for('admin_login') }}">Админ панел</a> · Цените са ориентировъчни.</footer>
+</div>
+<a class="wa" href="{{ wa }}" target="_blank" rel="noopener">WhatsApp ↗</a>
+</body>
+</html>
