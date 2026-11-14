@@ -11,7 +11,7 @@
       "head_sampling_rate": 1,
       "persist": true
     },
-    "previews": {}
+    "python_workers": true
   },
   "python_workers": true,
   "compatibility_date": "2026-11-13",
