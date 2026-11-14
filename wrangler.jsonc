@@ -13,7 +13,7 @@
     },
     "previews": {}
   },
-  "name": "vesterosbg",
+  "python_workers": true,
   "compatibility_date": "2026-11-13",
   "main": "app.py",
   "assets": {
