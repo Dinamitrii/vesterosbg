@@ -97,7 +97,7 @@ def load_env_file(path):
 load_env_file(BASE_DIR / ".env")
 if not os.environ.get("SECRET_KEY"):
     os.environ["SECRET_KEY"] = secrets.token_urlsafe(48)
-DB_PATH = Path(os.environ.get("CLIENTS_DB", BASE_DIR / "clients.sqlite3"))
+DB_PATH = Path(os.environ.get("vesterosbg-db", BASE_DIR / "vesterosbg-db.sqlite3"))
 CATEGORY_IMAGE_DIR = BASE_DIR / "static" / "img" / "brand" / "favicon"
 ALLOWED_IMAGE_FORMATS = {"JPEG", "PNG", "WEBP", "AVIF", "JPG"}
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
