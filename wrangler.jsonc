@@ -1,8 +1,16 @@
 {
-    "name": "vesterosbg",
-    "compatibility_date": "2026-11-13",
-    "compatibility_flags": ["python_workers"],
-    "assets": {
-      "directory": "./site"
-    }
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "invocation_logs": true,
+      "persist": true
+    },
+    "traces": {
+      "enabled": false,
+      "head_sampling_rate": 1,
+      "persist": true
+    },
+    "previews": {}
   }
+}
