@@ -1,4 +1,5 @@
 {
+  "name": "vesterosbg",
   "observability": {
     "logs": {
       "enabled": true,
@@ -7,16 +8,20 @@
       "persist": true
     },
     "traces": {
-      "enabled": false,
+      "enabled": true,
       "head_sampling_rate": 1,
       "persist": true
-    },
-    "python_workers": true
+    }
   },
-  "python_workers": true,
+  "compatibility_flags": ["python_workers"],
   "compatibility_date": "2026-11-13",
   "main": "app.py",
   "assets": {
     "directory": "./static"
-  }
+  },
+  "vars": {
+    "SITE_URL": "https://vesterosbg.online",
+    "WHATSAPP_PHONE": "359876641667"
+  },
+  "secrets": {}
 }

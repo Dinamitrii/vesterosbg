@@ -8,7 +8,12 @@ import os
 import tempfile
 from pathlib import Path
 from urllib.parse import quote, unquote, urlsplit
-from PIL import Image, ImageOps, features
+try:
+    from PIL import Image, ImageOps, features  # type: ignore
+    _PIL_AVAILABLE = True
+except ImportError:  # pragma: no cover - Pyodide/WASM worker ships without Pillow
+    Image = ImageOps = features = None  # type: ignore
+    _PIL_AVAILABLE = False
 from markupsafe import Markup, escape
 
 SIZES = (80, 160, 240, 320, 480, 640, 960, 1200)
@@ -78,6 +83,8 @@ def inventory(root):
 
 def generate_result(path):
     """Publish a complete manifest; report skipped formats and failures explicitly."""
+    if Image is None:
+        raise ValueError("Изображенията не могат да бъдат оптимизирани в тази среда (Workers/Pyodide); услугата е достъпна само в обычната, не- Cloudflare среда на изпълнение.")
     path = Path(path)
     try:
         if not features.check('webp'):

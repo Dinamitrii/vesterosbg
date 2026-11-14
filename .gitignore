@@ -1,7 +1,10 @@
 /clients.sqlite3
 .env
-.venv
-.env.example
+.env.bak
+.env.*
+.dev.vars
+.wrangler/cache/wrangler-account.json
+
 # Added by ggshield
 .cache_ggshield
 

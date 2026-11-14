@@ -12,7 +12,7 @@
 <body>
   <div class="wrap">
     <header class="top">
-      <a class="brand brand-logo" href="{{ url_for('index') }}" aria-label="Vesteros BG Ltd. — начало"><img src="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }}" width="96" height="96" alt="Vesteros BG Ltd." srcset="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }} 160w, {{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }} 320w" sizes="(max-width: 700px) 88px, 96px" decoding="async" fetchpriority="high"></a>
+      <a class="brand brand-logo" href="/" aria-label="Vesteros BG Ltd. — начало"><img src="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }}" width="96" height="96" alt="Vesteros BG Ltd." srcset="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }} 160w, {{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }} 320w" sizes="(max-width: 700px) 88px, 96px" decoding="async" fetchpriority="high"></a>
       <p class="brand-motto">НИЕ МОЖЕЩИТЕ ПРАВИМ НЕВЪЗМОЖНОТО ЗА ВАС ИМАЩИТЕ</p>
       <div class="header-tools">
         <nav class="nav"><a href="{{ url_for('index') }}#category-{{ service.category_id }}">Услуги и цени</a><a href="{{ url_for('contact_page') }}">Контакти</a></nav>
@@ -27,7 +27,7 @@
       <div class="service-gallery-page-grid">
         {% for image in images %}
         <figure>
-          <img {{ responsive_image_attrs(url_for('static', filename=image.filename), 960, '(max-width: 700px) calc(100vw - 40px), (max-width: 1100px) 45vw, 520px') }} alt="{{ image.alt or service.name }}" loading="lazy" decoding="async">
+          <img {{ responsive_image_attrs(url_for('static', filename=image.filename) | replace('/static/', '/'), 960, '(max-width: 700px) calc(100vw - 40px), (max-width: 1100px) 45vw, 520px') }} alt="{{ image.alt or service.name }}" loading="lazy" decoding="async">
           {% if image.alt %}<figcaption>{{ image.alt }}</figcaption>{% endif %}
         </figure>
         {% endfor %}

@@ -1,17 +1,37 @@
 import os
+import sys
+
+# Ensure the project root is on sys.path so app modules (aeo_mcp_server,
+# responsive_images, etc.) can be imported regardless of the working
+# directory used to launch the dev server or tests.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+
+
 import gzip
 import sqlite3
 import tempfile
 from functools import wraps
 from pathlib import Path
-import secrets
 from uuid import uuid4
+
 from urllib.parse import quote
+
+
 from xml.etree import ElementTree as ET
 from xml.sax.saxutils import escape
 
-from PIL import Image, ImageOps, UnidentifiedImageError
+import hashlib
+from secrets import token_bytes
+
+try:
+    from PIL import Image, ImageOps, UnidentifiedImageError  # type: ignore
+    _PIL_AVAILABLE = True
+except ImportError:  # pragma: no cover - Pyodide/WASM worker ships without Pillow
+    Image = ImageOps = UnidentifiedImageError = None  # type: ignore
+    _PIL_AVAILABLE = False
 from responsive_images import generate as generate_responsive_image, install as install_responsive_images
+from aeo_mcp_server import McpView, MCP_PROTOCOL_VERSION
 
 from flask import Flask, Response, abort, flash, redirect, render_template, request, send_from_directory, session, url_for
 
@@ -42,7 +62,13 @@ class GzipCompression:
         content_type = header_map.get("content-type", "").lower()
         compressible = any(content_type.startswith(prefix) for prefix in self.COMPRESSIBLE) or "+xml" in content_type
         accepted = "gzip" in environ.get("HTTP_ACCEPT_ENCODING", "").lower()
-        should_compress = (accepted and compressible
+        # Never compress the admin panel pages (login/dashboard) -- the WSGI/worker
+        # layer re-gzips already-compressed bytes and the browser then renders
+        # the response as binary.  Keep gzip for the API upload/download flows only,
+        # never for the admin HTML pages.
+        path = environ.get("PATH_INFO", "") or "/"
+        is_api = path.startswith("/api")
+        should_compress = (is_api and accepted and compressible
                            and status.split(" ", 1)[0] not in ("204", "304")
                            and "content-encoding" not in header_map
                            and "content-range" not in header_map
@@ -78,6 +104,26 @@ class GzipCompression:
         return [body]
 
 
+def hash_password(password: str, pepper: str) -> str:
+    """Hash a password with the AUTH_PEPPER using PBKDF2-SHA512.
+
+    Adds the pepper value to the password before hashing:
+        hash = PBKDF2-HMAC-SHA512(password + pepper, salt, iterations, 64)
+
+    Args:
+        password: Plain-text admin password from the login form.
+        pepper: AUTH_PEPPER value from .env (never stored in the DB).
+
+    Returns:
+        String: <algorithm>$<iterations>$<salt_hex>$<hash_hex>
+    """
+    salt = token_bytes(16)
+    iterations = 200_000
+    combined = (password + pepper).encode("utf-8")
+    hash_bytes = hashlib.pbkdf2_hmac("sha512", combined, salt, iterations)
+    return f"pbkdf2_sha512${iterations}${salt.hex()}${hash_bytes.hex()}"
+
+
 def load_env_file(path):
     """Load simple KEY=VALUE entries without overriding the shell environment."""
     if not path.exists():
@@ -96,8 +142,30 @@ def load_env_file(path):
 
 load_env_file(BASE_DIR / ".env")
 if not os.environ.get("SECRET_KEY"):
-    os.environ["SECRET_KEY"] = secrets.token_urlsafe(48)
-DB_PATH = Path(os.environ.get("vesterosbg-db", BASE_DIR / "vesterosbg-db.sqlite3"))
+    # Cloudflare Workers block entropy during Worker startup (startup values
+    # repeat across instances), so a random key cannot be generated here.
+    # Fall back to a deterministic dev key; set SECRET_KEY via env in prod.
+    os.environ["SECRET_KEY"] = "vesterosbg-dev-secret-key"
+def _resolve_db_path():
+    """Pick a writable location for the SQLite database.
+
+    The Cloudflare Python Worker runs on Pyodide, where the project directory
+    (and its filesystem) is read-only at startup, so a SQLite file cannot be
+    created next to app.py there.  Fall back to a writable temporary path in
+    that case.  An explicit ``vesterosbg-db`` env var, when set, always wins.
+    """
+    configured = os.environ.get("vesterosbg-db")
+    candidate = Path(configured) if configured else BASE_DIR / "vesterosbg-db.sqlite3"
+    try:
+        probe = candidate.with_name(".sqlite-probe")
+        probe.write_bytes(b"")
+        probe.unlink()
+        return candidate
+    except OSError:
+        return Path("/tmp") / candidate.name
+
+
+DB_PATH = _resolve_db_path()
 CATEGORY_IMAGE_DIR = BASE_DIR / "static" / "img" / "brand" / "favicon"
 ALLOWED_IMAGE_FORMATS = {"JPEG", "PNG", "WEBP", "AVIF", "JPG"}
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
@@ -108,6 +176,34 @@ app.secret_key = os.environ["SECRET_KEY"]
 app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax", MAX_CONTENT_LENGTH=MAX_UPLOAD_BYTES + 1024 * 1024)
 install_responsive_images(app)
 
+# WSGI adapter for the Cloudflare Worker. The worker shim depends on the
+# Cloudflare Workers SDK (js, workers packages) which are not installed in
+# the local dev venv, so skip the worker entrypoint in local development.
+# The `Default` variable is used by miniflare when deploying to Cloudflare.
+try:
+    import workers.wsgi as _wsgi  # noqa: F401 (WSGI adapter for Cloudflare Worker)
+    if _wsgi is not None and hasattr(_wsgi, "entrypoint"):
+        Default = _wsgi.entrypoint(app)
+    else:
+        # Cannot instantiate entrypoint: worker shim missing (Cloudflare SDK
+        # not available in local venv). Skip it; Default will be None.
+        Default = None
+except ImportError:
+    # Not running under the Cloudflare Worker runtime (local dev).
+    # workers.wsgi requires the Cloudflare Workers SDK (js, pyodide) which
+    # is only available inside the Worker runtime, not a normal venv.
+    _wsgi = None
+    Default = None
+
+# The WSGI adapter wraps the Flask app so it can serve the Worker's `fetch`
+# entry point. miniflare loads this module and calls `fetch(request)`;
+# without it the Worker rejects with "Handler does not export a fetch() function."
+# The WSGI adapter wraps the Flask app. miniflare's Python Worker loads this
+# module and instantiates the `Default` (a `WorkerEntrypoint` subclass) to serve
+# the Worker's `fetch` entry point:
+#   "There is no 'Default' class defined in the Python Worker's main module"
+# with "Handler does not export a fetch() function."
+# (Assigned above in the try/except block; local dev sets Default = None.)
 
 def db():
     connection = sqlite3.connect(DB_PATH)
@@ -124,7 +220,7 @@ def remove_uploaded_image(filename):
 
 def init_db():
     with db() as conn:
-        conn.executescript("""
+        conn.executescript("""\
         CREATE TABLE IF NOT EXISTS categories (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL UNIQUE,
@@ -149,27 +245,31 @@ def init_db():
         );
         CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
         """)
+        # Normalize the schema AFTER table creation, BEFORE any read.
         image_columns = {row["name"] for row in conn.execute("PRAGMA table_info(category_images)")}
-        if "service_id" not in image_columns:
-            conn.execute("ALTER TABLE category_images ADD COLUMN service_id INTEGER REFERENCES services(id) ON DELETE CASCADE")
+        if "module_id" not in image_columns and "service_id" in image_columns:
+            conn.execute("ALTER TABLE category_images RENAME COLUMN service_id TO module_id")
+        table_names = {row["name"] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        if "modules" not in table_names and "services" in table_names:
+            conn.execute("ALTER TABLE services RENAME TO modules")
         legacy_images = conn.execute("""
             SELECT id, category_id, alt FROM category_images
-            WHERE service_id IS NULL
-              AND EXISTS (SELECT 1 FROM services WHERE services.category_id=category_images.category_id)
+            WHERE module_id IS NULL
+              AND EXISTS (SELECT 1 FROM modules WHERE modules.category_id=category_images.category_id)
             ORDER BY category_id, position, id
         """).fetchall()
         for image in legacy_images:
             services = conn.execute(
-                "SELECT id,name FROM services WHERE category_id=? ORDER BY position,id",
+                "SELECT id,name FROM modules WHERE category_id=? ORDER BY position,id",
                 (image["category_id"],),
             ).fetchall()
             image_alt = image["alt"].casefold()
             target = next((service for service in services if service["name"].casefold() in image_alt), services[0])
             position = conn.execute(
-                "SELECT COALESCE(MAX(position),-1)+1 FROM category_images WHERE service_id=?",
+                "SELECT COALESCE(MAX(position),-1)+1 FROM category_images WHERE module_id=?",
                 (target["id"],),
             ).fetchone()[0]
-            conn.execute("UPDATE category_images SET service_id=?,position=? WHERE id=?", (target["id"], position, image["id"]))
+            conn.execute("UPDATE category_images SET module_id=?,position=? WHERE id=?", (target["id"], position, image["id"]))
         if conn.execute("SELECT COUNT(*) FROM categories").fetchone()[0] == 0:
             examples = [
                 ("Боядисване и шпакловка", [("Боядисване с латекс", "Подготовка и боядисване на стени и тавани.", 8.0, "кв.м"), ("Фина шпакловка", "Изравняване и подготовка за боядисване.", 12.0, "кв.м")]),
@@ -180,7 +280,7 @@ def init_db():
             for cat_pos, (category, items) in enumerate(examples):
                 cur = conn.execute("INSERT INTO categories(name, position) VALUES (?, ?)", (category, cat_pos))
                 for pos, (name, description, price, unit) in enumerate(items):
-                    conn.execute("INSERT INTO services(category_id,name,description,price,unit,position) VALUES (?,?,?,?,?,?)", (cur.lastrowid, name, description, price, unit, pos))
+                    conn.execute("INSERT INTO modules(category_id,name,description,price,unit,position) VALUES (?,?,?,?,?,?)", (cur.lastrowid, name, description, price, unit, pos))
         for key, value in (("company_name", "Вътрешни ремонти"), ("legal_name", "Вионекс ДГ ЕООД"), ("eik", "208377941"), ("address", "гр. София, район Студентски, ж.к. Витоша, бл. 1, ет. 2, ап. 6"), ("phone", "359888123456"), ("city", "София и областта")):
             conn.execute("INSERT OR IGNORE INTO settings(key,value) VALUES (?,?)", (key, value))
         conn.execute(
@@ -195,10 +295,15 @@ def init_db():
         )
 
 
-init_db()
+_init_db_initialized = False
 
 
-
+@app.before_request
+def _initialize_db():
+    global _init_db_initialized
+    if not _init_db_initialized:
+        _init_db_initialized = True
+        init_db()
 
 
 
@@ -207,7 +312,7 @@ def public_site_url():
     return configured_url or request.url_root.rstrip("/")
 
 
-@app.get("/favicon/<path:filename>")
+@app.get("/img/favicon/<path:filename>")
 def favicon_asset(filename):
     allowed_files = {
         "favicon.ico", "favicon.svg", "favicon-16x16.png", "favicon-32x32.png",
@@ -258,16 +363,16 @@ def index():
         data = []
         for category in categories:
             services = []
-            for service in conn.execute("SELECT * FROM services WHERE category_id=? ORDER BY position,id", (category["id"],)):
+            for service in conn.execute("SELECT * FROM modules WHERE category_id=? ORDER BY position,id", (category["id"],)):
                 service_data = dict(service)
                 service_data["images"] = [dict(image) for image in conn.execute(
-                    "SELECT * FROM category_images WHERE service_id=? ORDER BY position,id", (service["id"],)
+                    "SELECT * FROM category_images WHERE module_id=? ORDER BY position,id", (service["id"],)
                 )]
                 services.append(service_data)
             category_data = dict(category)
             category_data["images"] = [dict(image) for image in conn.execute(
-                "SELECT ci.*, s.name AS service_name FROM category_images ci LEFT JOIN services s ON s.id=ci.service_id WHERE ci.category_id=? ORDER BY s.position,s.id,ci.position,ci.id",
-                (category["id"],),
+                "SELECT ci.*, s.name AS service_name FROM category_images ci LEFT JOIN modules s ON s.id=ci.module_id WHERE ci.category_id=? ORDER BY s.position,s.id,ci.position,ci.id",
+                [category["id"]],
             )]
             data.append({**category_data, "services": services})
     map_embed, directions = map_links(settings)
@@ -278,15 +383,15 @@ def index():
 def service_gallery(service_id):
     with db() as conn:
         settings = settings_dict(conn)
-        row = conn.execute("""
-            SELECT s.*, c.name AS category_name, c.id AS category_id
-            FROM services s JOIN categories c ON c.id=s.category_id
-            WHERE s.id=?
+        row = conn.execute("""\
+            SELECT m.*, c.name AS category_name, c.id AS category_id
+            FROM modules m JOIN categories c ON c.id=m.category_id
+            WHERE m.id=?
         """, (service_id,)).fetchone()
         if not row:
             abort(404)
         images = [dict(image) for image in conn.execute(
-            "SELECT * FROM category_images WHERE service_id=? ORDER BY position,id", (service_id,)
+            "SELECT * FROM category_images WHERE module_id=? ORDER BY position,id", (service_id,),
         )]
     if not images:
         abort(404)
@@ -399,21 +504,21 @@ def sitemap_image_url(filename, base_url):
     return f"{base_url}{url_for('static', filename=filename)}"
 
 
-@app.get("/galeria/kategoriq/<int:category_id>")
-def category_gallery(category_id):
+@app.get("/galeria/<category_name>")
+def category_gallery(category_name):
     with db() as conn:
         settings = settings_dict(conn)
-        category = conn.execute("SELECT * FROM categories WHERE id=?", (category_id,)).fetchone()
+        category = conn.execute("SELECT * FROM categories WHERE name=?", (category_name,)).fetchone()
         if not category:
             abort(404)
         images = [dict(image) for image in conn.execute(
-            "SELECT ci.*, s.name AS service_name FROM category_images ci LEFT JOIN services s ON s.id=ci.service_id WHERE ci.category_id=? ORDER BY s.position,s.id,ci.position,ci.id",
-            (category_id,),
+            "SELECT ci.*, m.name AS service_name FROM category_images ci LEFT JOIN modules m ON m.id=ci.module_id WHERE ci.category_id=? ORDER BY m.position,m.id,ci.position,ci.id",
+            [category["id"]],
         )]
     if len(images) < 4:
         abort(404)
     gallery = {"name": category["name"], "category_name": category["name"],
-               "category_id": category_id, "description": ""}
+               "category_id": category["id"], "description": ""}
     return render_template(
         "gallery.html",
         service=gallery,
@@ -422,7 +527,7 @@ def category_gallery(category_id):
         wa=whatsapp(settings),
         map_embed="",
         directions="",
-        canonical_url=f"{public_site_url()}{url_for('category_gallery', category_id=category_id)}",
+        canonical_url=f"{public_site_url()}{url_for('category_gallery', category_name=category_name)}",
     )
 
 
@@ -448,11 +553,11 @@ def sitemap():
                 ET.SubElement(image, f"{{{image_ns}}}title").text = title
 
     with db() as conn:
-        images = conn.execute("""
-            SELECT ci.filename, ci.alt, ci.service_id, ci.category_id, c.name AS category_name,
-                   s.name AS service_name, COUNT(*) OVER (PARTITION BY ci.service_id) AS service_image_count
+        images = conn.execute("""\
+            SELECT ci.filename, ci.alt, ci.module_id, ci.category_id, c.name AS category_name,
+                   s.name AS service_name, COUNT(*) OVER (PARTITION BY ci.module_id) AS service_image_count
             FROM category_images ci JOIN categories c ON c.id=ci.category_id
-            LEFT JOIN services s ON s.id=ci.service_id
+            LEFT JOIN modules s ON s.id=ci.module_id
             ORDER BY c.position,c.id,s.position,s.id,ci.position,ci.id
         """).fetchall()
     homepage_images = []
@@ -523,8 +628,12 @@ def admin_login():
     with db() as conn:
         company = settings_dict(conn).get("company_name", "Админ")
     if request.method == "POST":
-        expected = os.environ.get("ADMIN_PASSWORD", "admin123")
-        if request.form.get("password", "") == expected:
+        password = request.form.get("password", "")
+        pepper = os.environ.get("AUTH_PEPPER", "")
+        # Hash the submitted password with the pepper, then compare
+        # with the stored ADMIN_PASSWORD value
+        expected_hash = hash_password(password, pepper)
+        if expected_hash == os.environ.get("ADMIN_PASSWORD", ""):
             session["admin"] = True
             return redirect(url_for("admin_dashboard"))
         flash("Невалидна парола.")
@@ -568,6 +677,18 @@ def save_settings():
         conn.executemany("INSERT INTO settings(key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", values.items())
     flash("Данните са запазени.")
     return redirect(url_for("admin_dashboard"))
+
+
+# ---------------------------------------------------------------------------
+# MCP API endpoint (Model Context Protocol)
+# ---------------------------------------------------------------------------
+McpView(app=app)
+
+
+@app.get("/admin/settings")
+@admin_required
+def admin_settings():
+    return "Settings disabled", 405
 
 
 @app.post("/admin/category")
@@ -633,6 +754,8 @@ def save_optimized_image(file_storage):
     raw = file_storage.stream.read(MAX_UPLOAD_BYTES + 1)
     if len(raw) > MAX_UPLOAD_BYTES:
         raise ValueError("Изображението трябва да е до 12 MB.")
+    if Image is None:
+        raise ValueError("Оптимизацията на изображенията не е налична в тази среда (Workers/Pyodide); услугата е достъпна само в обычната, не- Cloudflare среда на изпълнение.")
     try:
         from io import BytesIO
         with Image.open(BytesIO(raw)) as source:
@@ -659,7 +782,7 @@ def save_image_to_service(service_id):
     saved_path = None
     try:
         with db() as conn:
-            service = conn.execute("SELECT id,category_id FROM services WHERE id=?", (service_id,)).fetchone()
+            service = conn.execute("SELECT id,category_id FROM modules WHERE id=?", (service_id,)).fetchone()
             if not service:
                 abort(404)
         saved_path = save_optimized_image(request.files.get("image"))
@@ -690,7 +813,7 @@ def upload_service_image(service_id):
 @admin_required
 def upload_category_image(category_id):
     with db() as conn:
-        service = conn.execute("SELECT id FROM services WHERE category_id=? ORDER BY position,id LIMIT 1", (category_id,)).fetchone()
+        service = conn.execute("SELECT id FROM modules WHERE category_id=? ORDER BY position,id LIMIT 1", (category_id,)).fetchone()
     if not service:
         flash("Добави услуга към категорията, преди да качиш снимка.")
         return redirect(url_for("admin_dashboard"))
@@ -763,7 +886,7 @@ def add_service():
     try:
         price = parse_price(request.form.get("price", ""))
         with db() as conn:
-            conn.execute("INSERT INTO services(category_id,name,description,price,unit) VALUES (?,?,?,?,?)", (int(request.form["category_id"]), request.form["name"].strip(), request.form.get("description", "").strip(), price, request.form.get("unit", "кв.м").strip() or "бр."))
+            conn.execute("INSERT INTO modules(category_id,name,description,price,unit) VALUES (?,?,?,?,?)", (int(request.form["category_id"]), request.form["name"].strip(), request.form.get("description", "").strip(), price, request.form.get("unit", "кв.м").strip() or "бр."))
         flash("Услугата е добавена.")
     except (ValueError, KeyError, sqlite3.IntegrityError):
         flash("Провери въведените данни за услугата.")
@@ -775,7 +898,7 @@ def add_service():
 def edit_service(service_id):
     try:
         with db() as conn:
-            conn.execute("UPDATE services SET name=?,description=?,price=?,unit=? WHERE id=?", (request.form["name"].strip(), request.form.get("description", "").strip(), parse_price(request.form.get("price", "")), request.form.get("unit", "").strip() or "бр.", service_id))
+            conn.execute("UPDATE modules SET name=?,description=?,price=?,unit=? WHERE id=?", (request.form["name"].strip(), request.form.get("description", "").strip(), parse_price(request.form.get("price", "")), request.form.get("unit", "").strip() or "бр.", service_id))
         flash("Услугата е обновена.")
     except (ValueError, KeyError):
         flash("Провери въведената цена.")
@@ -786,8 +909,8 @@ def edit_service(service_id):
 @admin_required
 def delete_service(service_id):
     with db() as conn:
-        filenames = [row[0] for row in conn.execute("SELECT filename FROM category_images WHERE service_id=?", (service_id,))]
-        conn.execute("DELETE FROM services WHERE id=?", (service_id,))
+        filenames = [row[0] for row in conn.execute("SELECT filename FROM category_images WHERE module_id=?", (service_id,))]
+        conn.execute("DELETE FROM modules WHERE id=?", (service_id,))
     for filename in filenames:
         remove_uploaded_image(filename)
     flash("Услугата е изтрита.")

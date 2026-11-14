@@ -2,7 +2,6 @@
 node_modules
 .venv
 .venv-workers
-spectorosbg
 .git
 .wrangler
 wrangler.jsonc
@@ -15,3 +14,6 @@ clients.sqlite3
 .python-version
 requirements.txt
 __pycache__
+
+# exclude the nested vesterosbg package (its node_modules/workerd is >25MiB)
+vesterosbg
