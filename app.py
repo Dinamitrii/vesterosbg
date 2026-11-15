@@ -347,7 +347,9 @@ def settings_dict(conn):
 def whatsapp(settings):
     configured_phone = os.environ.get("WHATSAPP_PHONE") or settings.get("phone", "")
     number = "".join(ch for ch in configured_phone if ch.isdigit())
-    return f"https://wa.me/{number}?text=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D0%B5%D0%B9%D1%82%D0%B5%2C%20%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%B5%D1%81%D1%83%D0%B2%D0%B0%D0%BC%20%D1%81%D0%B5%20%D0%BE%D1%82%20%D0%B2%D0%B0%D1%88%D0%B8%D1%82%D0%B5%20%D1%83%D1%81%D0%BB%D1%83%D0%B3%D0%B8." if number else "https://wa.me/"
+    if not number:
+        return "https://wa.me/"
+    return f"https://wa.me/{number}?text={quote('Здравейте! Имаме възможности да обсъшем вашият ремонт. Свържете се с нас.')}"
 
 
 def map_links(settings):
@@ -409,7 +411,7 @@ def service_gallery(service_id):
     )
 
 
-@app.get("/kontakti")
+@app.get("/contacts")
 def contact_page():
     with db() as conn:
         settings = settings_dict(conn)
@@ -574,6 +576,7 @@ def sitemap():
 
     add_url("/", priority="1.0", images=[sitemap_image(image) for image in homepage_images])
     add_url(url_for("contact_page"))
+    add_url("/contacts")
     for category_id, category_images in category_gallery_images.items():
         if len(category_images) >= 4:
             add_url(url_for("category_gallery", category_id=category_id),

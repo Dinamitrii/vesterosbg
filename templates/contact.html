@@ -30,7 +30,7 @@
     </div>
   </header>
   <main>
-<div class="contact-grid"><div class="contact-info"><h3>{{ settings.legal_name }}</h3><p>ЕИК: {{ settings.eik }}</p><p><b>Контакт:</b><br><a href="tel:+359876641667">+359 876 641 667 · Камен Караиванов</a></p><p><b>Друг телефон:</b><br><a href="tel:+35876641667">+358 766 416 67</a></p><p><b>Адрес:</b><br>{{ settings.address }}</p><p><b>Район на работа:</b><br>{{ settings.city }}</p><div class="map-actions"><a class="contact" href="{{ directions }}" target="_blank" rel="noopener">Упътвания в Google Maps ↗</a><a class="btn" style="background:#0f7a43;color:white" href="{{ wa }}" target="_blank" rel="noopener">WhatsApp ↗</a></div></div><div><iframe class="map" title="Карта с адреса на фирмата" src="{{ map_embed }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe></div></div></section>
+<div class="contact-grid"><div class="contact-info"><h3>{{ settings.legal_name }}</h3><p>ЕИК: {{ settings.eik }}</p><p><b>Телефон:</b><br><a href="tel:+359876641667">+359 876 641 667 · Камен Караиванов</a></p><p><b>Адрес:</b><br>{{ settings.address }}</p><p><b>Район на работа:</b><br>{{ settings.city }}</p><div class="map-actions"><a class="contact" href="{{ directions }}" target="_blank" rel="noopener">Упътвания в Google Maps ↗</a><a class="btn" style="background:#0f7a43;color:white;padding:8px 14px;border-radius:8px;border:0;font:inherit" href="{{ wa }}" target="_blank" rel="noopener">Пиши по WhatsApp ↗</a></div></div><div><iframe class="map" title="Карта с адреса на фирмата" src="{{ map_embed }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe></div></div></section>
   <section class="section" id="contact-form">
     <div class="section-head"><div><div class="eyebrow" style="color:#596b2c">Форма за контакт</div><h1>Изпратете заявка</h1><p>Заповяваме въпросни данни вътре в системата — няма нужда да се регистрирате.</p></div></div>
     <form method="post" action="{{ url_for('contact_submit') }}" class="contact-form" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
@@ -56,6 +56,14 @@
       </div>
     </form>
   </section>
+    <section class="section" id="google-map">
+      <div class="section-head"><div><div class="eyebrow" style="color:#596b2c">Карта</div><h1>Къде ни намерим</h1></div></div>
+      <div class="place-card">
+        <p><b>Вестерос БГ Еоод</b> <span class="hint" style="color:#59645f">— Google Business Profile:</span></p>
+        <p class="hint" style="color:#59645f">Записан е в Google Business Profile. Линка:</p>
+        <p class="hint"><a href="https://maps.google.com/?q={{ settings.address }}" target="_blank" rel="noopener" style="color:#0f7a43">Открий в Google Maps ↗</a></p>
+      </div>
+    </section>
 </main>
   <footer class="footer">© {{ settings.company_name }} · {{ settings.city }} · Вестерос БГ Еоод © 2026 г. · <a href="{{ url_for('admin_login') }}">Админ панел</a> · Цените са ориентировъчни.</footer>
 </div>
