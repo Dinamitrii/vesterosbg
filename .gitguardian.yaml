@@ -1,0 +1,11 @@
+# GitGuardian (ggshield) secret-scanning configuration.
+# Only verified false positives belong here — each entry names what the match
+# actually is and why it is not a credential. Do not add blanket ignores.
+version: 2
+secret:
+  ignored_matches:
+    # tests/test_auth_pepper.py::test_full_auth_flow_with_pepper — a throwaway
+    # dummy password used only inside the test to exercise hash/verify logic.
+    # It is not, and never was, a real credential.
+    - name: "Dummy test-fixture password in tests/test_auth_pepper.py"
+      match: "21f4c0dc965f3b28d2bbb5a525b79482dcc63a7c16c6aca33a5d0e712e9297ef"
