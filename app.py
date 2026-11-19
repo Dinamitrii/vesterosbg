@@ -174,7 +174,20 @@ app = Flask(__name__)
 app.wsgi_app = GzipCompression(app.wsgi_app)
 app.secret_key = os.environ["SECRET_KEY"]
 app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax", MAX_CONTENT_LENGTH=MAX_UPLOAD_BYTES + 1024 * 1024)
+
+@app.get("/static/<path:filename>")
+def static_file(filename):
+    """Serve static files from the static/ directory."""
+    return send_from_directory(BASE_DIR / "static", filename)
 install_responsive_images(app)
+
+# Helpers for self-referencing URLs in templates (this Jinja2 build has no
+# trim_end/trim_start filters).
+@app.template_filter('trim_end')
+def filter_trim_end(value, char='/'):
+    if not isinstance(value, str):
+        return value
+    return value.rstrip(char)
 
 # WSGI adapter for the Cloudflare Worker. The worker shim depends on the
 # Cloudflare Workers SDK (js, workers packages) which are not installed in
@@ -272,16 +285,31 @@ def init_db():
             conn.execute("UPDATE category_images SET module_id=?,position=? WHERE id=?", (target["id"], position, image["id"]))
         if conn.execute("SELECT COUNT(*) FROM categories").fetchone()[0] == 0:
             examples = [
-                ("Боядисване и шпакловка", [("Боядисване с латекс", "Подготовка и боядисване на стени и тавани.", 8.0, "кв.м"), ("Фина шпакловка", "Изравняване и подготовка за боядисване.", 12.0, "кв.м")]),
-                ("Подови настилки", [("Редене на ламинат", "Монтаж на ламинат с подложка.", 18.0, "кв.м"), ("Полагане на гранитогрес", "Прецизно лепене и фугиране.", 45.0, "кв.м")]),
-                ("Баня и ВиК", [("Основен ремонт на баня", "Цена след оглед според обхвата.", None, "проект"), ("Монтаж на санитария", "Монтаж и свързване на санитарно оборудване.", 80.0, "бр.")]),
-                ("Електроуслуги", [("Монтаж на контакт", "Демонтаж и монтаж на контакт.", 25.0, "бр.")]),
+                ("Изработка на уебсайтове", [
+                    ("Уебсайт с включена SEO и AEO оптимизация", "Уникален дизайн, адаптивен за телефон, таблет и компютър. Готов до 5 дни.", 350.0, "сайт"),
+                ]),
+                ("SEO и AEO оптимизация", [
+                    ("Оптимизация за търсачки и AI отговори", "Структура, скорост, мета описания и структурирани данни за Google и AI асистенти.", None, "включена"),
+                ]),
+                ("Поддръжка", [
+                    ("Поддръжка на уебсайт", "Обновяване на съдържание, архивиране, мониторинг и бързи корекции.", None, "месец"),
+                ]),
+                ("Допълнителни модули", [
+                    ("Онлайн магазин", "Каталог с продукти, кошница и поръчки.", 100.0, "модул"),
+                    ("Блог", "Модул за публикации, статии и новини.", 100.0, "модул"),
+                    ("Втори език", "Многоезичност на съдържанието.", 100.0, "модул"),
+                    ("Резервации", "Онлайн график и резервационна форма.", 100.0, "модул"),
+                    ("Контактна форма с известия", "Форма за запитвания с известия по имейл/WhatsApp.", 100.0, "модул"),
+                    ("Галерия", "Секция с портфолио и оптимизирани снимки.", 100.0, "модул"),
+                    ("Админ панел", "Панел за управление на съдържанието и заявките.", 100.0, "модул"),
+                    ("Интеграция с външни услуги", "Свързване с външни API, карти, аналитика.", 100.0, "модул"),
+                ]),
             ]
             for cat_pos, (category, items) in enumerate(examples):
                 cur = conn.execute("INSERT INTO categories(name, position) VALUES (?, ?)", (category, cat_pos))
                 for pos, (name, description, price, unit) in enumerate(items):
                     conn.execute("INSERT INTO modules(category_id,name,description,price,unit,position) VALUES (?,?,?,?,?,?)", (cur.lastrowid, name, description, price, unit, pos))
-        for key, value in (("company_name", "Вътрешни ремонти"), ("legal_name", "Вионекс ДГ ЕООД"), ("eik", "208377941"), ("address", "гр. София, район Студентски, ж.к. Витоша, бл. 1, ет. 2, ап. 6"), ("phone", "359888123456"), ("city", "София и областта")):
+        for key, value in (("company_name", "Вестерос БГ"), ("legal_name", "Вестерос БГ ЕООД"), ("eik", "206244287"), ("address", "гр. София, ж.к. Дианабад, бл. 42, ет. 1, ап. 4, ПК 1172"), ("phone", os.environ.get("WHATSAPP_PHONE", "359876641667")), ("city", "София и областта")):
             conn.execute("INSERT OR IGNORE INTO settings(key,value) VALUES (?,?)", (key, value))
         conn.execute(
             "CREATE TABLE IF NOT EXISTS clients ("
@@ -332,11 +360,10 @@ def root_favicon():
 @app.get("/ai-catalog.json")
 @app.get("/.well-known/ai-catalog.json")
 def ai_catalog():
-    return send_from_directory(
-        BASE_DIR / "static" / ".well-known",
-        "ai-catalog.json",
+    return Response(
+        render_template("ai-catalog.json", site_url=public_site_url()),
         mimetype="application/ai-catalog+json",
-        max_age=3600,
+        headers={"Cache-Control": "max-age=3600"},
     )
 
 
@@ -349,7 +376,7 @@ def whatsapp(settings):
     number = "".join(ch for ch in configured_phone if ch.isdigit())
     if not number:
         return "https://wa.me/"
-    return f"https://wa.me/{number}?text={quote('Здравейте! Имаме възможности да обсъшем вашият ремонт. Свържете се с нас.')}"
+    return f"https://wa.me/{number}?text={quote('Здравейте! Уебсайтове от модули – дизайн, SEO и AEO, поддръжка.')}"
 
 
 def map_links(settings):
@@ -574,17 +601,17 @@ def sitemap():
     def sitemap_image(image):
         return (image["filename"], image["alt"] or image["service_name"] or image["category_name"])
 
-    add_url("/", priority="1.0", images=[sitemap_image(image) for image in homepage_images])
+    add_url(url_for("index"), priority="1.0", images=[sitemap_image(image) for image in homepage_images])
     add_url(url_for("contact_page"))
-    add_url("/contacts")
     for category_id, category_images in category_gallery_images.items():
         if len(category_images) >= 4:
-            add_url(url_for("category_gallery", category_id=category_id),
+            cat_name = category_images[0]["category_name"]
+            add_url(url_for("category_gallery", category_name=cat_name),
                     images=[sitemap_image(image) for image in category_images])
     for service_id, service_images in gallery_images.items():
         add_url(url_for("service_gallery", service_id=service_id),
                 images=[sitemap_image(image) for image in service_images])
-    add_url("/robots.txt")
+    add_url(url_for("robots"))
 
     if hasattr(ET, "indent"):
         ET.indent(root, space="  ")
@@ -617,8 +644,8 @@ def llms_txt():
 
 @app.get("/robots.txt")
 def robots():
-    sitemap_url = escape(f"{public_site_url()}/sitemap.xml")
-    body = f"User-agent: *\nAllow: /\nDisallow: /admin\nSitemap: {sitemap_url}\n"
+    sitemap_url = escape(f"{public_site_url()}{url_for('sitemap')}")
+    body = f"User-agent: *\nAllow: /\nDisallow: {url_for('admin_login')}\nSitemap: {sitemap_url}\n"
     return Response(body, mimetype="text/plain")
 
 
@@ -685,7 +712,9 @@ def save_settings():
 # ---------------------------------------------------------------------------
 # MCP API endpoint (Model Context Protocol)
 # ---------------------------------------------------------------------------
-McpView(app=app)
+_mcp_view = McpView(app=app)
+# Expose the project DB factory to the MCP tools (avoids a circular import).
+app.extensions["mcp_db"] = db
 
 
 @app.get("/admin/settings")

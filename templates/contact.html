@@ -12,25 +12,26 @@
 <body>
 <div class="wrap">
   <header class="top">
-    <a class="brand brand-logo" href="{{ url_for('index') }}" aria-label="Vesteros BG Ltd. — начало">
-      <img src="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }}" width="96" height="96" alt="Vesteros BG Ltd." srcset="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }} 160w, {{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }} 320w" sizes="(max-width: 700px) 88px, 96px" decoding="async" fetchpriority="high">
-    </a>
-    <p class="brand-motto">НИЕ МОЖЕЩИТЕ ПРАВИМ НЕВЪЗМОЖНОТО ЗА ВАС ИМАЩИТЕ</p>
-    <div class="header-tools">
-      <nav class="nav">
-        <a href="{{ url_for('index') }}#uslugi">Услуги и цени</a>
-        <a href="{{ url_for('contact_page') }}" aria-current="page">Контакти</a>
-      </nav>
-      <form id="site-search-form" class="site-search" role="search" method="get" action="{{ url_for('index') }}#uslugi">
-        <label class="sr-only" for="site-search">Търсене в услугите и категориите</label>
-        <input id="site-search" type="search" name="q" placeholder="Търси услуга…" autocomplete="off">
-        <span class="search-icon" aria-hidden="true">⌕</span>
-      </form>
-      <a class="contact" href="{{ wa }}" target="_blank" rel="noopener">Пиши ни в WhatsApp ↗</a>
+    <div class="wrap bar">
+        <a class="brand" href="{{ url_for('index') }}" aria-label="Vesteros BG Ltd. — начало">
+            <img src="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }}" width="96" height="96" alt="Vesteros BG Ltd." srcset="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }} 160w, {{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }} 320w" sizes="(max-width: 700px) 88px, 96px" decoding="async" fetchpriority="high">
+        </a>
+        <div class="header-tools">
+            <nav class="nav">
+                <a href="{{ url_for('index') }}#uslugi">Услуги и цени</a>
+                <a href="{{ url_for('contact_page') }}" aria-current="page">Контакти</a>
+            </nav>
+            <form id="site-search-form" class="site-search" role="search" method="get" action="{{ url_for('index') }}#uslugi">
+                <label class="sr-only" for="site-search">Търсене в услугите и категориите</label>
+                <input id="site-search" type="search" name="q" placeholder="Търси услуга…" autocomplete="off">
+                <span class="search-icon" aria-hidden="true">⌕</span>
+            </form>
+            <a class="contact" href="{{ wa }}" target="_blank" rel="noopener">Пиши ни в WhatsApp ↗</a>
+        </div>
     </div>
-  </header>
+</header>
   <main>
-<div class="contact-grid"><div class="contact-info"><h3>{{ settings.legal_name }}</h3><p>ЕИК: {{ settings.eik }}</p><p><b>Телефон:</b><br><a href="tel:+359876641667">+359 876 641 667 · Камен Караиванов</a></p><p><b>Адрес:</b><br>{{ settings.address }}</p><p><b>Район на работа:</b><br>{{ settings.city }}</p><div class="map-actions"><a class="contact" href="{{ directions }}" target="_blank" rel="noopener">Упътвания в Google Maps ↗</a><a class="btn" style="background:#0f7a43;color:white;padding:8px 14px;border-radius:8px;border:0;font:inherit" href="{{ wa }}" target="_blank" rel="noopener">Пиши по WhatsApp ↗</a></div></div><div><iframe class="map" title="Карта с адреса на фирмата" src="{{ map_embed }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe></div></div></section>
+<div class="contact-grid"><div class="contact-info"><h3>{{ settings.legal_name }}</h3><p>ЕИК: {{ settings.eik }}</p><p><b>Телефон:</b><br><a href="tel:+{{ settings.phone }}">+{{ settings.phone }} · {{ settings.legal_name }}</a><p><b>Адрес:</b><br>{{ settings.address }}</p><p><b>Район на работа:</b><br>{{ settings.city }}</p><div class="map-actions"><a class="contact" href="{{ directions }}" target="_blank" rel="noopener">Упътвания в Google Maps ↗</a><a class="btn" style="background:#0f7a43;color:white;padding:8px 14px;border-radius:8px;border:0;font:inherit" href="{{ wa }}" target="_blank" rel="noopener">Пиши по WhatsApp ↗</a></div></div><div><iframe class="map" title="Карта с адреса на фирмата" src="{{ map_embed }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen style="width:100%; height:400px; border:none;"></iframe></div></div></section>
   <section class="section" id="contact-form">
     <div class="section-head"><div><div class="eyebrow" style="color:#596b2c">Форма за контакт</div><h1>Изпратете заявка</h1><p>Заповяваме въпросни данни вътре в системата — няма нужда да се регистрирате.</p></div></div>
     <form method="post" action="{{ url_for('contact_submit') }}" class="contact-form" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
@@ -61,7 +62,7 @@
       <div class="place-card">
         <p><b>Вестерос БГ Еоод</b> <span class="hint" style="color:#59645f">— Google Business Profile:</span></p>
         <p class="hint" style="color:#59645f">Записан е в Google Business Profile. Линка:</p>
-        <p class="hint"><a href="https://maps.google.com/?q={{ settings.address }}" target="_blank" rel="noopener" style="color:#0f7a43">Открий в Google Maps ↗</a></p>
+        <p class="hint"><a href="{{ directions }}" target="_blank" rel="noopener" style="color:#0f7a43">Открий в Google Maps ↗</a></p>
       </div>
     </section>
 </main>

@@ -10,8 +10,7 @@
     <link rel="canonical" href="{{ canonical_url }}">
     <link rel="preload" as="image" href="{{ url_for('static', filename='images/brand/vionex-logo-inverted.webp') }}" imagesrcset="{{ url_for('static', filename='images/brand/vionex-logo-160.webp') }} 160w,{{ url_for('static', filename='images/brand/vionex-logo-inverted.webp') }} 320w" imagesizes="(max-width: 700px) 88px, 96px" fetchpriority="high">{% include "_performance_head.html" %}</head>
 <body>
-<div class="wrap"><header class="top"><a class="brand brand-logo" href="/" aria-label="Vionex — начало"><img src="{{ url_for('static', filename='images/brand/vionex-logo-inverted.webp') }}" width="96" height="96" alt="Vionex" srcset="{{ url_for('static', filename='images/brand/vionex-logo-160.webp') }} 160w, {{ url_for('static', filename='/images/brand/vionex-logo-inverted.webp') }} 320w" sizes="(max-width: 700px) 88px, 96px" decoding="async" fetchpriority="high"></a>
-    <p class="brand-motto">НИЕ МОЖЕЩИТЕ ПРАВИМ НЕВЪЗМОЖНОТО ЗА ВАС ИМАЩИТЕ</p>
+<div class="wrap"><header class="top"><a class="brand brand-logo" href="{{ url_for('index') }}" aria-label="Vionex — начало"><img src="{{ url_for('static', filename='images/brand/vionex-logo-inverted.webp') }}" width="96" height="96" alt="Vionex" srcset="{{ url_for('static', filename='images/brand/vionex-logo-160.webp') }} 160w, {{ url_for('static', filename='images/brand/vionex-logo-inverted.webp') }} 320w" sizes="(max-width: 700px) 88px, 96px" decoding="async" fetchpriority="high"></a>
     <div class="header-tools"><nav class="nav"><a href="#uslugi">Услуги и цени</a><a href="{{ url_for('contact_page') }}">Контакти</a></nav>
     <form id="site-search-form" class="site-search" role="search" method="get" action="{{ url_for('index') }}#uslugi"><label class="sr-only" for="site-search">Търсене в услугите и категориите</label><input id="site-search" type="search" name="q" placeholder="Търси услуга…" autocomplete="off"><span class="search-icon" aria-hidden="true">⌕</span></form>
     <a class="contact" href="{{ wa }}" target="_blank" rel="noopener">Пиши ни в WhatsApp ↗</a></div></header>
@@ -24,7 +23,7 @@
     <p>Цените са за труд. Точна оферта след оглед.</p>
 </div>
 </div><p id="search-status" class="search-status" aria-live="polite"></p>{% for category in categories %}<section class="category" id="category-{{ category.id }}" data-category-name="{{ category.name }}">
-    <h3 class="category-heading">{% if category.images|length >= 4 %}<a href="{{ url_for('category_gallery', category_id=category.id) }}">{{ category.name }}</a>{% else %}{{ category.name }}{% endif %}</h3><div class="cards">{% for service in category.services %}
+    <h3 class="category-heading">{% if category.images|length >= 4 %}<a href="{{ url_for('category_gallery', category_name=category.name) }}">{{ category.name }}</a>{% else %}{{ category.name }}{% endif %}</h3><div class="cards">{% for service in category.services %}
     <article class="card" data-search="{{ service.name }} {{ service.description }}" data-image-count="{{ service.images|length }}"><h4>{% if service.images|length >= 4 %}
     <a class="service-gallery-toggle" href="{{ url_for('service_gallery', service_id=service.id) }}">{{ service.name }}</a
 >{% else %}<button type="button" class="service-gallery-toggle" aria-expanded="false" aria-controls="service-gallery-{{ service.id }}">{{ service.name }}</button>{% endif %}

@@ -1,19 +1,7 @@
-# Wrangler assets: serve static/ and templates/ only; exclude everything else
-node_modules
-.venv
-.venv-workers
-.git
-.wrangler
-wrangler.jsonc
-package.json
-pyproject.toml
-uv.lock
-pylock.toml
-README.md
-clients.sqlite3
-.python-version
-requirements.txt
-__pycache__
-
-# exclude the nested vesterosbg package (its node_modules/workerd is >25MiB)
-vesterosbg
+# Wrangler assets: serve ONLY site static/ + templates/ (top-level files).
+# assets.directory = "." (project root). pywrangler dev reads .assetsignore.
+# /* excludes top-level entries; nested static/ tree kept; old templates/1/ excluded.
+/*
+!/static/
+!/templates/
+/templates/1/

@@ -16,9 +16,20 @@
   "compatibility_flags": ["python_workers"],
   "compatibility_date": "2026-11-13",
   "main": "app.py",
+  "rules": [
+    { "type": "Text", "globs": ["templates/*.html", "templates/*.json"] },
+    { "type": "Data", "globs": ["static/*", "static/**/*"] }
+  ],
   "assets": {
-    "directory": "./static"
+    "directory": "."
   },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "vesterosbg-db",
+      "database_id": ""
+    }
+  ],
   "vars": {
     "SITE_URL": "https://vesterosbg.online",
     "WHATSAPP_PHONE": "359876641667"

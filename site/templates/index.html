@@ -9,13 +9,13 @@
     <title>Изработка и поддръжка на уебсайтове от 350 € | Vesteros BG</title>
     <meta name="description"
           content="Vesteros BG изработва и поддържа бързи уебсайтове с включена SEO и AEO оптимизация. Сайт от 350 € за до 5 дни, допълнителен модул по 100 €.">
-    <link rel="canonical" href="https://vesterosbg.online/">
+    <link rel="canonical" href="{{ canonical_url }}">
     <meta name="theme-color" content="#14202B">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="bg_BG">
     <meta property="og:title" content="Vesteros BG – уебсайтове, които се класират в Google">
     <meta property="og:description" content="Сайт от 350 € за до 5 дни. SEO и AEO оптимизация е включена в цената.">
-    <meta property="og:url" content="https://vesterosbg.online/">
+    <meta property="og:url" content="{{ canonical_url }}">
     <meta name="robots" content="index, follow, max-image-preview:large">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,7 +34,7 @@
 <body>
 <header>
     <div class="wrap bar">
-        <a class="brand" href="/" aria-label="Vesteros BG Ltd. – начало">
+        <a class="brand" href="{{ url_for('index') }}" aria-label="Vesteros BG Ltd. – начало">
             <img alt="Vesteros BG Ltd." src="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }}"></a>
         <nav aria-label="Основна навигация">
             <a href="#uslugi">Услуги</a>

@@ -377,6 +377,67 @@ h1 {
 /* services */
 .grid {
     display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;               /* a bit more spacing */
+    align-items: stretch;   /* equal height */
+    justify-content: center;/* center the grid itself */
+}
+
+.work {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;    /* center inner content horizontally */
+    height: 100%;
+    text-align: center;
+    padding: 16px;
+}
+
+.work .shot {
+    flex: 0 0 auto;
+    width: 100%;
+    aspect-ratio: 16/9;      /* same dimensions for all three boxes */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-bottom: 12px;
+    position: relative;      /* for responsive iframe */
+}
+
+.work .shot iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+    border: none;
+}
+
+    flex: 0 0 auto;
+    width: 100%;
+    aspect-ratio: 16/9;      /* uniform size for all shots */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.work .shot iframe {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+}
+
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 18px;
+    align-items: stretch; /* make all grid items the same height */
+}
+
+    display: grid;
     grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
     gap: 18px
 }
@@ -453,7 +514,102 @@ h1 {
 }
 
 /* portfolio */
+/* Increase height for Selected Projects boxes */
+#proekti .work .shot {
+    flex: 0 0 auto;
+    width: 100%;
+    height: 350px;
+    min-height: 350px; /* fixed test height */
+    aspect-ratio: 16/9; /* keep uniform size */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-bottom: 12px;
+    position: relative;
+}
+.shot-link {
+    display: block;
+    width: 100%;
+}
+.shot-link img {
+    height: auto;
+    max-width: 80%;
+    display: block;
+}
+
+    flex: 0 0 auto;
+    width: 100%;
+    aspect-ratio: 16/9;      /* same dimensions for all three boxes */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-bottom: 12px;
+    position: relative;      /* for responsive iframe */
+}
+
+.work .shot iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+    border: none;
+}
+
+    min-height: 350px; /* increase height */
+    aspect-ratio: 16/9; /* slightly taller */
+}
+
 .work {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    /* Ensure equal height across items */
+}
+
+.work .shot {
+    flex: 0 0 auto;
+    width: 100%;
+    aspect-ratio: 16/9;      /* same dimensions for all three boxes */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-bottom: 12px;
+    position: relative;      /* for responsive iframe */
+}
+
+.work .shot iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+    border: none;
+}
+
+    flex: 1 1 auto; /* take remaining vertical space */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.work .shot iframe {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+}
+
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    /* Ensure equal height across items */
+    }
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: var(--r);
@@ -562,5 +718,64 @@ footer .wrap {
     .track em {
         animation: none;
         width: var(--w)
+    }
+}
+
+/* ---- Contact page layout ---- */
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    align-items: start;
+    margin: 8px 0 48px
+}
+
+.contact-info {
+    background: #fff;
+    border: 1px solid #e3e7df;
+    border-radius: 14px;
+    padding: 28px
+}
+
+.contact-info h3 {
+    margin: 0 0 14px;
+    font: 800 22px Manrope, sans-serif;
+    letter-spacing: -.5px;
+    color: #172321
+}
+
+.contact-info p {
+    margin: 12px 0;
+    line-height: 1.65;
+    color: #172321
+}
+
+.contact-info a {
+    color: #0f7a43;
+    font-weight: 600
+}
+
+.map-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 20px
+}
+
+.place-card {
+    background: #fff;
+    border: 1px solid #e3e7df;
+    border-radius: 14px;
+    padding: 24px
+}
+
+.place-card p {
+    margin: 8px 0;
+    line-height: 1.6
+}
+
+@media (max-width: 700px) {
+    .contact-grid {
+        grid-template-columns: 1fr
     }
 }

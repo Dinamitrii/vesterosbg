@@ -1,0 +1,38 @@
+<!doctype html><html lang="bg"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Детайли за заявката · {{ client.name }} · Админ</title><link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}"></head><body>
+<main class="wrap admin client-detail">
+  <div class="field-row mb-16">
+    <a href="{{ url_for('admin_clients') }}" class="admin-link">&larr; Назад към списъка с клиенти</a>
+  </div>
+  <div class="panel">
+    <div class="field-row gap-14">
+      <div>
+        <h1 class="client-detail h1">Заявка от «{{ client.name }}»</h1>
+        <p class="hint">Телефон: <strong>{{ client.phone }}</strong> · Email: <strong>{{ client.email or 'няма' }}</strong></p>
+      </div>
+      <span class="badge badge-{{ client.status }}">Статус: {{ 'нов' if client.status == 'nov' else ('в обработка' if client.status == 'pq' else 'затворена') }}</span>
+    </div>
+
+    <div class="field-row mt-18">
+      <label for="status">Промяна на статус</label>
+      <form method="post" action="{{ url_for('admin_client_status', client_id=client.id) }}">
+        <select id="status" name="status">
+          <option value="nov" {% if client.status == 'nov' %}selected{% endif %}>нов</option>
+          <option value="pq" {% if client.status == 'pq' %}selected{% endif %}>в обработка</option>
+          <option value="zatvorena" {% if client.status == 'zatvorena' %}selected{% endif %}>затворена</option>
+        </select>
+        <button class="submit">Запази статус</button>
+      </form>
+    </div>
+
+    <div class="message-head">
+      <h2 class="client-detail h2">Съобщение</h2>
+      <p class="message-text">{{ client.message }}</p>
+    </div>
+
+    <div class="action-row">
+      <p class="hint">Записано: {{ client.created_at }}</p>
+      <a href="{{ url_for('admin_clients') }}" class="btn alt">&larr; Назад към списъка</a>
+    </div>
+  </div>
+</main>
+</body></html>

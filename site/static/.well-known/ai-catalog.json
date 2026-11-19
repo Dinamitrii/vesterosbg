@@ -1,0 +1,22 @@
+{
+  "name": "Vesteros BG",
+  "description": "Вестерос БГ е уеб агенство за уебсайтове и AI технологии. Бърз, SEO- и AEO-оптимизиран уебсайт от 350 € за до 5 дни.",
+  "serviceUrl": "https://vesterosbg.online/",
+  "columns": [
+    {
+      "name": "Уебсайт",
+      "description": "Бърз и SEO-релевантен уебсайт, подготвен във вакансия до 5 дни.",
+      "image": {
+        "contentUrl": "https://vesterosbg.online/static/img/brand/vesterosbg-brand-logo.svg"
+      }
+    },
+    {
+      "name": "AI технологии",
+      "description": "AI интеграции, автоматизации и chatbots за бизнеса.",
+      "image": {
+        "contentUrl": "https://vesterosbg.online/static/img/brand/vesterosbg-brand-logo.svg"
+      }
+    }
+  ],
+  "catalogs": []
+}
