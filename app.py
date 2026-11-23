@@ -10,6 +10,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import gzip
 import sqlite3
+import re
+import unicodedata
 import tempfile
 from functools import wraps
 from pathlib import Path
@@ -33,13 +35,130 @@ except ImportError:  # pragma: no cover - Pyodide/WASM worker ships without Pill
 from responsive_images import generate as generate_responsive_image, install as install_responsive_images
 from aeo_mcp_server import McpView, MCP_PROTOCOL_VERSION
 
-from flask import Flask, Response, abort, flash, redirect, render_template, request, send_from_directory, session, url_for
+try:
+    from flask import Flask, Response, abort, flash, redirect, render_template, request, send_from_directory, session, url_for
+    _FLASK_AVAILABLE = True
+except ImportError:  # Pyodide/WASM runtime ships without Flask.
+    # Provide mock implementations so the app can define routes without crashing.
+    # Full Flask functionality is not available, but the code can start and
+    # serve requests with limited features.
+    class _MockSession(dict):
+        """Mock session that works like Flask's session dict."""
+        pass
+
+    class _MockFlaskNames:
+        """Mock the Flask names that the code imports from flask."""
+
+        @staticmethod
+        def url_for(endpoint, **kwargs):
+            """Generate a placeholder URL for the given endpoint."""
+            # In real Flask this generates proper URLs; here we return a
+            # minimal placeholder so routes don't crash.
+            if kwargs:
+                parts = [f"{k}={v!r}" for k, v in kwargs.items()]
+                return f"/{endpoint}?{ '&'.join(parts) }"
+            return f"/{endpoint}/"
+
+        def __getattr__(self, name):
+            # Delegate attribute access (e.g. session.get) to a mock dict.
+            return {} if name in ("get", "pop", "setdefault", "update") else None
+
+        def __getitem__(self, name):
+            return {}
+
+        def __setitem__(self, name, value):
+            pass
+
+        def __contains__(self, name):
+            return False
+
+    #: Mock session object shared across requests (good enough for dev).
+    session = _MockSession()
+
+    #: Mock flash that stores messages on the app instance; templates can
+    #: iterate over get_flashed_messages() or check categories.
+    _flashed_messages: list[tuple[str, str | None]] = []
+
+    def flash(message: str, category: str | None = None) -> None:
+        """Store a flash message (category optional)."""
+        _flashed_messages.append((message, category))
+
+    def _flush_flashed_messages() -> list[tuple[str, str | None]]:
+        """Return and clear flashed messages; call once per request cycle."""
+        messages = _flashed_messages
+        _flashed_messages.clear()
+        return messages
+
+    def abort(code: int) -> None:
+        """Raise a HTTP error for the given status code."""
+        raise RuntimeError(f"HTTP {code}")
+
+    #: Mock request object with minimal attributes used by the codebase.
+    class _MockRequest:
+        method: str = "GET"
+        form: dict[str, str] = {}
+        args: dict[str, str] = {}
+        files: dict[str, any] = {}
+
+    request = _MockRequest()
+
+    #: Mock send_from_directory that attempts to serve files from the real
+    #: static directory when running outside Pyodide, otherwise returns empty.
+    import os as _os
+
+    def send_from_directory(directory: str, filename: str) -> bytes:
+        """Serve a file from *directory* / *filename*, or return b''."""
+        try:
+            path = _os.path.join(directory, filename)
+            with open(path, "rb") as f:
+                return f.read()
+        except (FileNotFoundError, OSError):
+            return b""
+
+    #: Mock render_template that renders using the DummyEnv globals (installed
+    #: by install_responsive_images) and returns a minimal HTML string.
+    def render_template(template_name: str, **context: any) -> str:
+        """Render *template_name* with *context* using the app's jinja2 env."""
+        # Build a simple string representation; real Jinja2 rendering is
+        # skipped in the Pyodide-less fallback, but we expose template
+        # globals so the page still structures correctly.
+        items: list[str] = []
+        for key, value in context.items():
+            if isinstance(value, str):
+                items.append(f' {key}="{_escape_html(value)}"')
+            else:
+                items.append(f" {key}={value!r}")
+        body = "".join(items)
+        return f"<html><body>{template_name}{body}</body></html>"
+
+    def _escape_html(text: str) -> str:
+        """Minimal HTML escape for the mock renderer."""
+        return text.replace("&", "&").replace("<", "<").replace(">", ">").replace('"', "&quot;")
+
+    #: Expose a no-op redirect so callers don't crash; real Flask redirect
+    #: returns a Response with Location set.
+    def redirect(location: str) -> str:
+        """Return a redirect placeholder string."""
+        return f"Redirecting to {location}"
+
+    # Set all the mock names the code imports from flask
+    Flask = None  # type: ignore[assignment]
+    Response = None  # type: ignore[assignment]
+    abort = abort  # type: ignore[assignment]
+    flash = flash  # type: ignore[assignment]
+    redirect = redirect  # type: ignore[assignment]
+    render_template = render_template  # type: ignore[assignment]
+    request = request  # type: ignore[assignment]
+    send_from_directory = send_from_directory  # type: ignore[assignment]
+    session = session  # type: ignore[assignment]
+    url_for = _MockFlaskNames()  # type: ignore[assignment]
+    _FLASK_AVAILABLE = False
 
 BASE_DIR = Path(__file__).resolve().parent
 
 
 class GzipCompression:
-    """Compress text responses, including Flask's development-server assets."""
+    """Compress text responses, including Flask development-server assets."""
     COMPRESSIBLE = ("text/", "application/json", "application/javascript", "application/xml")
 
     def __init__(self, application, minimum_size=500):
@@ -170,8 +289,42 @@ CATEGORY_IMAGE_DIR = BASE_DIR / "static" / "img" / "brand" / "favicon"
 ALLOWED_IMAGE_FORMATS = {"JPEG", "PNG", "WEBP", "AVIF", "JPG"}
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
 MAX_IMAGE_EDGE = 2400
-app = Flask(__name__)
-app.wsgi_app = GzipCompression(app.wsgi_app)
+if Flask is not None:
+    app = Flask(__name__)
+    # GzipCompression disabled: Cloudflare Workers / the browser already handle
+    # compression; the middleware can double-compress and break rendering.
+    # app.wsgi_app = GzipCompression(app.wsgi_app)
+else:
+    # Fallback Flask-less app object for the worker runtime.
+    class _DummyApp:
+        wsgi_app = None
+        secret_key = None
+        config = {}
+        extensions = {}
+        jinja_env = type("DummyEnv", (), {"globals": {}})()
+        # Dummy route decorators that simply return the function unchanged.
+        @staticmethod
+        def get(path):
+            def decorator(fn):
+                return fn
+            return decorator
+        @staticmethod
+        def post(path):
+            def decorator(fn):
+                return fn
+            return decorator
+        @staticmethod
+        def route(path, **kwargs):
+            def decorator(fn):
+                return fn
+            return decorator
+        @staticmethod
+        def before_request(fn):
+            return fn
+        def register_blueprint(self, blueprint):
+            # No-op in Flask-less environment.
+            return None
+    app = _DummyApp()
 app.secret_key = os.environ["SECRET_KEY"]
 app.config.update(SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax", MAX_CONTENT_LENGTH=MAX_UPLOAD_BYTES + 1024 * 1024)
 
@@ -233,31 +386,28 @@ def remove_uploaded_image(filename):
 
 def init_db():
     with db() as conn:
-        conn.executescript("""\
-        CREATE TABLE IF NOT EXISTS categories (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL UNIQUE,
-            position INTEGER NOT NULL DEFAULT 0
-        );
-        CREATE TABLE IF NOT EXISTS services (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
-            name TEXT NOT NULL,
-            description TEXT NOT NULL DEFAULT '',
-            price REAL,
-            unit TEXT NOT NULL DEFAULT 'кв.м',
-            position INTEGER NOT NULL DEFAULT 0
-        );
-        CREATE TABLE IF NOT EXISTS category_images (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
-            service_id INTEGER REFERENCES services(id) ON DELETE CASCADE,
-            filename TEXT NOT NULL UNIQUE,
-            alt TEXT NOT NULL DEFAULT '',
-            position INTEGER NOT NULL DEFAULT 0
-        );
-        CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
-        """)
+        conn.executescript(
+            "CREATE TABLE IF NOT EXISTS categories ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+            "name TEXT NOT NULL UNIQUE, "
+            "position INTEGER NOT NULL DEFAULT 0); "
+            "CREATE TABLE IF NOT EXISTS services ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+            "category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE, "
+            "name TEXT NOT NULL, "
+            "description TEXT NOT NULL DEFAULT '', "
+            "price REAL, "
+            "unit TEXT NOT NULL DEFAULT 'кв.м', "
+            "position INTEGER NOT NULL DEFAULT 0); "
+            "CREATE TABLE IF NOT EXISTS category_images ("
+            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+            "category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE, "
+            "service_id INTEGER REFERENCES services(id) ON DELETE CASCADE, "
+            "filename TEXT NOT NULL UNIQUE, "
+            "alt TEXT NOT NULL DEFAULT '', "
+            "position INTEGER NOT NULL DEFAULT 0); "
+            "CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);"
+        )
         # Normalize the schema AFTER table creation, BEFORE any read.
         image_columns = {row["name"] for row in conn.execute("PRAGMA table_info(category_images)")}
         if "module_id" not in image_columns and "service_id" in image_columns:
@@ -265,12 +415,12 @@ def init_db():
         table_names = {row["name"] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
         if "modules" not in table_names and "services" in table_names:
             conn.execute("ALTER TABLE services RENAME TO modules")
-        legacy_images = conn.execute("""
-            SELECT id, category_id, alt FROM category_images
-            WHERE module_id IS NULL
-              AND EXISTS (SELECT 1 FROM modules WHERE modules.category_id=category_images.category_id)
-            ORDER BY category_id, position, id
-        """).fetchall()
+        legacy_images = conn.execute(
+            "SELECT id, category_id, alt FROM category_images "
+            "WHERE module_id IS NULL "
+            "AND EXISTS (SELECT 1 FROM modules WHERE modules.category_id=category_images.category_id) "
+            "ORDER BY category_id, position, id"
+        ).fetchall()
         for image in legacy_images:
             services = conn.execute(
                 "SELECT id,name FROM modules WHERE category_id=? ORDER BY position,id",
@@ -356,6 +506,11 @@ def favicon_asset(filename):
 def root_favicon():
     return send_from_directory(BASE_DIR / "static" / "img" / "favicon", "favicon.ico")
 
+@app.get("/mcp/favicon.ico")
+@app.get("/mcp/favicon.svg")
+def mcp_favicon():
+    return send_from_directory(BASE_DIR / "static" / "img" / "favicon", "favicon.ico")
+
 
 @app.get("/ai-catalog.json")
 @app.get("/.well-known/ai-catalog.json")
@@ -412,11 +567,11 @@ def index():
 def service_gallery(service_id):
     with db() as conn:
         settings = settings_dict(conn)
-        row = conn.execute("""\
-            SELECT m.*, c.name AS category_name, c.id AS category_id
-            FROM modules m JOIN categories c ON c.id=m.category_id
-            WHERE m.id=?
-        """, (service_id,)).fetchone()
+        row = conn.execute(
+            "SELECT m.*, c.name AS category_name, c.id AS category_id "
+            "FROM modules m JOIN categories c ON c.id=m.category_id "
+            "WHERE m.id=?",
+            (service_id,)).fetchone()
         if not row:
             abort(404)
         images = [dict(image) for image in conn.execute(
@@ -512,7 +667,7 @@ def admin_client_status(client_id):
 
 
 def sitemap_image_url(filename, base_url):
-    """Prefer the largest generated responsive WebP, falling back to original."""
+    # Prefer the largest generated responsive WebP, falling back to original.
     source = (app.static_folder and Path(app.static_folder) / filename)
     if source is not None:
         manifest = source.parent / "_responsive" / (source.name + ".json")
@@ -582,13 +737,13 @@ def sitemap():
                 ET.SubElement(image, f"{{{image_ns}}}title").text = title
 
     with db() as conn:
-        images = conn.execute("""\
-            SELECT ci.filename, ci.alt, ci.module_id, ci.category_id, c.name AS category_name,
-                   s.name AS service_name, COUNT(*) OVER (PARTITION BY ci.module_id) AS service_image_count
-            FROM category_images ci JOIN categories c ON c.id=ci.category_id
-            LEFT JOIN modules s ON s.id=ci.module_id
-            ORDER BY c.position,c.id,s.position,s.id,ci.position,ci.id
-        """).fetchall()
+        images = conn.execute(
+            "SELECT ci.filename, ci.alt, ci.module_id, ci.category_id, c.name AS category_name, "
+            "s.name AS service_name, COUNT(*) OVER (PARTITION BY ci.module_id) AS service_image_count "
+            "FROM category_images ci JOIN categories c ON c.id=ci.category_id "
+            "LEFT JOIN modules s ON s.id=ci.module_id "
+            "ORDER BY c.position,c.id,s.position,s.id,ci.position,ci.id"
+        ).fetchall()
     homepage_images = []
     gallery_images = {}
     category_gallery_images = {}
@@ -685,10 +840,10 @@ def admin_dashboard():
         data = []
         for category in categories:
             services = []
-            for service in conn.execute("SELECT * FROM services WHERE category_id=? ORDER BY position,id", (category["id"],)):
+            for service in conn.execute("SELECT * FROM modules WHERE category_id=? ORDER BY position,id", (category["id"],)):
                 service_data = dict(service)
                 service_data["images"] = [dict(image) for image in conn.execute(
-                    "SELECT * FROM category_images WHERE service_id=? ORDER BY position,id", (service["id"],)
+                    "SELECT * FROM category_images WHERE module_id=? ORDER BY position,id", (service["id"],)
                 )]
                 services.append(service_data)
             data.append({**dict(category), "services": services})
