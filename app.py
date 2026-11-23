@@ -243,6 +243,30 @@ def hash_password(password: str, pepper: str) -> str:
     return f"pbkdf2_sha512${iterations}${salt.hex()}${hash_bytes.hex()}"
 
 
+def verify_password(password: str, pepper: str, stored_hash: str) -> bool:
+    """Verify a password against a stored hash.
+
+    Args:
+        password: Plain-text password to verify.
+        pepper: AUTH_PEPPER value from .env.
+        stored_hash: The stored hash in format <algorithm>$<iterations>$<salt_hex>$<hash_hex>
+
+    Returns:
+        True if password matches, False otherwise.
+    """
+    try:
+        algo, iterations_str, salt_hex, hash_hex = stored_hash.split("$")
+        if algo != "pbkdf2_sha512":
+            return False
+        iterations = int(iterations_str)
+        salt = bytes.fromhex(salt_hex)
+        combined = (password + pepper).encode("utf-8")
+        hash_bytes = hashlib.pbkdf2_hmac("sha512", combined, salt, iterations)
+        return hash_bytes.hex() == hash_hex
+    except (ValueError, AttributeError):
+        return False
+
+
 def load_env_file(path):
     """Load simple KEY=VALUE entries without overriding the shell environment."""
     if not path.exists():
@@ -819,10 +843,8 @@ def admin_login():
     if request.method == "POST":
         password = request.form.get("password", "")
         pepper = os.environ.get("AUTH_PEPPER", "")
-        # Hash the submitted password with the pepper, then compare
-        # with the stored ADMIN_PASSWORD value
-        expected_hash = hash_password(password, pepper)
-        if expected_hash == os.environ.get("ADMIN_PASSWORD", ""):
+        stored_hash = os.environ.get("ADMIN_PASSWORD", "")
+        if verify_password(password, pepper, stored_hash):
             session["admin"] = True
             return redirect(url_for("admin_dashboard"))
         flash("Невалидна парола.")
