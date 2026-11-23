@@ -14,7 +14,15 @@ try:
 except ImportError:  # pragma: no cover - Pyodide/WASM worker ships without Pillow
     Image = ImageOps = features = None  # type: ignore
     _PIL_AVAILABLE = False
-from markupsafe import Markup, escape
+try:
+    from markupsafe import Markup, escape
+except ImportError:  # Pyodide/WASM runtime ships without markupsafe
+    from html import escape
+
+    class Markup(str):  # type: ignore[no-redef]
+        """Minimal stand-in for markupsafe.Markup (a str subclass)."""
+        def format(self, *args, **kwargs):  # type: ignore[override]
+            return Markup(super().format(*args, **kwargs))
 
 SIZES = (80, 160, 240, 320, 480, 640, 960, 1200)
 # Changing the profile creates new URLs instead of overwriting cached images.

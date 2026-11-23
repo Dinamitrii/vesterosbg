@@ -1,6 +1,6 @@
 <!doctype html><html lang="bg"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Вход · Админ</title><link rel="icon" href="{{ url_for('favicon_asset', filename='favicon.svg') }}" type="image/svg+xml"><link rel="stylesheet" href="{{ url_for('static', filename='styles/style.css') }}"></head><body>
 <div class="login-box">
-  <a href="{{ url_for('index') }}" class="brand"><img style="height:26px;width:auto;vertical-align:middle" src="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }}" alt="Железария Дианабад">{{ company }}<span>.</span></a>
+  <a href="{{ url_for('index') }}" class="brand"><img style="height:26px;width:auto;vertical-align:middle" src="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }}" alt="Вестерос БГ">{{ company }}<span>.</span></a>
   <h1>Администрация</h1>
   {% for message in get_flashed_messages() %}<div class="flash">{{ message }}</div>{% endfor %}
   <form method="post" action="{{ url_for('admin_login') }}">

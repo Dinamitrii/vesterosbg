@@ -24,7 +24,12 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Callable, Optional
 
-from flask import Blueprint, Response, current_app, jsonify, request
+try:
+    from flask import Blueprint, Response, current_app, jsonify, request
+    _FLASK_AVAILABLE = True
+except ImportError:  # Pyodide/WASM runtime ships without Flask — MCP is optional.
+    Blueprint = Response = current_app = jsonify = request = None  # type: ignore[assignment]
+    _FLASK_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -109,7 +114,18 @@ def _invoke_tool(name: str, params: dict) -> Any:
 # ---------------------------------------------------------------------------
 # Flask blueprint: the MCP HTTP API
 # ---------------------------------------------------------------------------
-mcp_bp = Blueprint("mcp", __name__, url_prefix="/mcp")
+if _FLASK_AVAILABLE:
+    mcp_bp = Blueprint("mcp", __name__, url_prefix="/mcp")
+
+    def _route(method, path):
+        return getattr(mcp_bp, method)(path)
+else:  # Pyodide/WASM runtime ships without Flask — skip blueprint registration.
+    mcp_bp = None
+
+    def _route(method, path):  # type: ignore[no-redef]
+        def decorator(fn):
+            return fn
+        return decorator
 
 
 def _get_db():
@@ -132,7 +148,7 @@ def _settings_dict():
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
-@mcp_bp.get("/")
+@_route("get", "/")
 def mcp_capabilities() -> Response:
     """Capability discovery: what this MCP server offers."""
     return jsonify(
@@ -155,7 +171,7 @@ def mcp_capabilities() -> Response:
     )
 
 
-@mcp_bp.post("/")
+@_route("post", "/")
 def mcp_dispatch() -> Response:
     """Dispatch a JSON-RPC 2.0 request (tools/call, tools/list, ...)."""
     body = request.get_json(silent=True, force=True)
@@ -170,8 +186,8 @@ def mcp_dispatch() -> Response:
     return _handle_single(body)
 
 
-@mcp_bp.get("/stream")
-@mcp_bp.post("/stream")
+@_route("get", "/stream")
+@_route("post", "/stream")
 def mcp_stream() -> Response:
     """Server-Sent Events stream for long-running tool calls."""
     if request.method == "GET":
@@ -410,6 +426,8 @@ class McpView:
             self.register(app)
 
     def register(self, app):
+        if mcp_bp is None:
+            return self
         app.register_blueprint(mcp_bp)
         # Expose the DB factory for the MCP tools (avoids a circular import).
         app.extensions["mcp_db"] = getattr(app, "db", None)

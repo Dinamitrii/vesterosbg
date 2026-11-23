@@ -21,20 +21,15 @@
                 <a href="{{ url_for('index') }}#uslugi">Услуги и цени</a>
                 <a href="{{ url_for('contact_page') }}" aria-current="page">Контакти</a>
             </nav>
-            <form id="site-search-form" class="site-search" role="search" method="get" action="{{ url_for('index') }}#uslugi">
-                <label class="sr-only" for="site-search">Търсене в услугите и категориите</label>
-                <input id="site-search" type="search" name="q" placeholder="Търси услуга…" autocomplete="off">
-                <span class="search-icon" aria-hidden="true">⌕</span>
-            </form>
             <a class="contact" href="{{ wa }}" target="_blank" rel="noopener">Пиши ни в WhatsApp ↗</a>
         </div>
     </div>
 </header>
   <main>
-<div class="contact-grid"><div class="contact-info"><h3>{{ settings.legal_name }}</h3><p>ЕИК: {{ settings.eik }}</p><p><b>Телефон:</b><br><a href="tel:+{{ settings.phone }}">+{{ settings.phone }} · {{ settings.legal_name }}</a><p><b>Адрес:</b><br>{{ settings.address }}</p><p><b>Район на работа:</b><br>{{ settings.city }}</p><div class="map-actions"><a class="contact" href="{{ directions }}" target="_blank" rel="noopener">Упътвания в Google Maps ↗</a><a class="btn" style="background:#0f7a43;color:white;padding:8px 14px;border-radius:8px;border:0;font:inherit" href="{{ wa }}" target="_blank" rel="noopener">Пиши по WhatsApp ↗</a></div></div><div><iframe class="map" title="Карта с адреса на фирмата" src="{{ map_embed }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen style="width:100%; height:400px; border:none;"></iframe></div></div></section>
+<div class="contact-grid"><div class="contact-info"><h3>{{ settings.legal_name }}</h3><p>ЕИК: {{ settings.eik }}</p><p><b>Телефон:</b><br><a href="tel:+{{ settings.phone }}">+{{ settings.phone }} · {{ settings.legal_name }}</a></p><p><b>Имейл:</b><br><a href="mailto:{{ settings.email }}">{{ settings.email }}</a></p><p><b>Адрес:</b><br>{{ settings.address }}</p><p><b>Район на работа:</b><br>{{ settings.city }}</p><div class="map-actions"><a class="contact" href="{{ directions }}" target="_blank" rel="noopener">Упътвания в Google Maps ↗</a><a class="btn" style="background:#0f7a43;color:white;padding:8px 14px;border-radius:8px;border:0;font:inherit" href="{{ wa }}" target="_blank" rel="noopener">Пиши по WhatsApp ↗</a></div></div><div><iframe class="map" title="Карта с адреса на фирмата" src="{{ map_embed }}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen style="width:100%; height:400px; border:none;"></iframe></div></div></section>
   <section class="section" id="contact-form">
     <div class="section-head"><div><div class="eyebrow" style="color:#596b2c">Форма за контакт</div><h1>Изпратете заявка</h1><p>Заповяваме въпросни данни вътре в системата — няма нужда да се регистрирате.</p></div></div>
-    <form method="post" action="{{ url_for('contact_submit') }}" class="contact-form" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <form method="post" action="/contacts" class="contact-form" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div style="display:grid;gap:8px">
         <label for="name">Име <span style="color:#B7C4D0">*</span></label>
         <input id="name" name="name" type="text" required style="padding:12px 14px;border:1px solid #D5DBE1;border-radius:8px;font:inherit">

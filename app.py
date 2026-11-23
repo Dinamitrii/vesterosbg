@@ -459,7 +459,7 @@ def init_db():
                 cur = conn.execute("INSERT INTO categories(name, position) VALUES (?, ?)", (category, cat_pos))
                 for pos, (name, description, price, unit) in enumerate(items):
                     conn.execute("INSERT INTO modules(category_id,name,description,price,unit,position) VALUES (?,?,?,?,?,?)", (cur.lastrowid, name, description, price, unit, pos))
-        for key, value in (("company_name", "Вестерос БГ"), ("legal_name", "Вестерос БГ ЕООД"), ("eik", "206244287"), ("address", "гр. София, ж.к. Дианабад, бл. 42, ет. 1, ап. 4, ПК 1172"), ("phone", os.environ.get("WHATSAPP_PHONE", "359876641667")), ("city", "София и областта")):
+        for key, value in (("company_name", "Vesteros BG Ltd"), ("legal_name", "Вестерос БГ ЕООД"), ("eik", "206244287"), ("address", "гр. София, ж.к. Дианабад, бл. 42, ет. 1, ап. 4, ПК 1172"), ("phone", os.environ.get("WHATSAPP_PHONE", "359876641667")), ("city", "София и областта"), ("email", "office@vesterosbg.online")):
             conn.execute("INSERT OR IGNORE INTO settings(key,value) VALUES (?,?)", (key, value))
         conn.execute(
             "CREATE TABLE IF NOT EXISTS clients ("
@@ -612,7 +612,7 @@ def contact_page():
     )
 
 
-@app.post("/contact")
+@app.post("/contacts")
 def contact_submit():
     name = request.form.get("name", "").strip()
     phone = request.form.get("phone", "").strip()
@@ -857,7 +857,7 @@ def admin_dashboard():
 @app.post("/admin/settings")
 @admin_required
 def save_settings():
-    allowed = {"company_name", "legal_name", "eik", "address", "phone", "city"}
+    allowed = {"company_name", "legal_name", "eik", "address", "phone", "city", "email"}
     values = {k: request.form.get(k, "").strip() for k in allowed}
     if not values["company_name"] or not values["phone"]:
         flash("Име и телефон са задължителни.")
