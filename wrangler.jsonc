@@ -27,12 +27,14 @@
     {
       "binding": "DB",
       "database_name": "vesterosbg-db",
-      "database_id": ""
+      "database_id": "35dd8f5d-8e52-436c-b327-30835552b034"
     }
   ],
   "vars": {
     "SITE_URL": "https://vesterosbg.online",
     "WHATSAPP_PHONE": "359876641667"
   },
-  "secrets": {}
+  "secrets": {
+    "required": ["SECRET_KEY", "AUTH_PEPPER", "ADMIN_PASSWORD"]
+  }
 }

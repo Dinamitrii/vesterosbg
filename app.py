@@ -34,6 +34,7 @@ except ImportError:  # pragma: no cover - Pyodide/WASM worker ships without Pill
     _PIL_AVAILABLE = False
 from responsive_images import generate as generate_responsive_image, install as install_responsive_images
 from aeo_mcp_server import McpView, MCP_PROTOCOL_VERSION
+from d1_compat import D1Connection, get_raw_env
 
 try:
     from flask import Flask, Response, abort, flash, redirect, render_template, request, send_from_directory, session, url_for
@@ -156,6 +157,43 @@ except ImportError:  # Pyodide/WASM runtime ships without Flask.
 
 BASE_DIR = Path(__file__).resolve().parent
 
+# Cloudflare Workers expose bindings (wrangler ``vars`` and secrets) through the
+# worker ``env`` object, NOT through ``os.environ`` -- the WSGI adapter stores
+# them under the ``workers.env`` key of the WSGI environ.  Import the worker env
+# shim when available (inside the Worker runtime) and fall back to ``os.environ``
+# (populated from .env locally) otherwise.
+try:  # pragma: no cover - only importable inside the Worker runtime
+    from workers import env as _worker_env
+except Exception:  # ImportError outside the Worker runtime (local dev / tests)
+    _worker_env = None
+
+
+def app_env(name, default=""):
+    """Read a setting from the Worker ``env`` (vars/secrets) or ``os.environ``.
+
+    Cloudflare Workers do not populate ``os.environ`` with wrangler ``vars`` or
+    secrets; those are reachable through the worker ``env`` object.  The most
+    authoritative env is the per-request one the WSGI adapter stores under
+    ``environ["workers.env"]`` (it includes secret bindings); the global
+    ``cloudflare:workers`` env is used as a fallback (e.g. at import time).
+    Locally the value comes from ``os.environ`` (loaded from .env).
+    """
+    if _worker_env is not None:
+        try:
+            from flask import request as _request
+
+            wrapped = _request.environ.get("workers.env")
+            if wrapped is not None:
+                value = getattr(wrapped, name, None)
+                if value:
+                    return value
+        except Exception:  # noqa: BLE001 - no request context
+            pass
+        value = getattr(_worker_env, name, None)
+        if value:
+            return value
+    return os.environ.get(name, default)
+
 
 class GzipCompression:
     """Compress text responses, including Flask development-server assets."""
@@ -223,6 +261,28 @@ class GzipCompression:
         return [body]
 
 
+def _pbkdf2_sha512(combined: bytes, salt: bytes, iterations: int, dklen: int = 64) -> bytes:
+    """PBKDF2-HMAC-SHA512.
+
+    Local Python exposes ``hashlib.pbkdf2_hmac`` (fast, native). The Cloudflare
+    Worker (Pyodide) does not ship ``pbkdf2_hmac`` in ``hashlib``; there we use
+    the runtime's native WebCrypto ``crypto.subtle`` implementation instead.
+    """
+    if hasattr(hashlib, "pbkdf2_hmac"):
+        return hashlib.pbkdf2_hmac("sha512", combined, salt, iterations, dklen)
+    from pyodide.ffi import run_sync, to_js
+    import js
+
+    subtle = js.crypto.subtle
+    key = run_sync(subtle.importKey("raw", to_js(combined), "PBKDF2", False, to_js(["deriveBits"])))
+    bits = run_sync(subtle.deriveBits(
+        to_js({"name": "PBKDF2", "salt": to_js(salt), "iterations": iterations, "hash": "SHA-512"}),
+        key,
+        dklen * 8,
+    ))
+    return js.Uint8Array.new(bits).to_bytes()
+
+
 def hash_password(password: str, pepper: str) -> str:
     """Hash a password with the AUTH_PEPPER using PBKDF2-SHA512.
 
@@ -237,9 +297,9 @@ def hash_password(password: str, pepper: str) -> str:
         String: <algorithm>$<iterations>$<salt_hex>$<hash_hex>
     """
     salt = token_bytes(16)
-    iterations = 200_000
+    iterations = 100_000  # Cloudflare Workers WebCrypto caps PBKDF2 at 100k iterations
     combined = (password + pepper).encode("utf-8")
-    hash_bytes = hashlib.pbkdf2_hmac("sha512", combined, salt, iterations)
+    hash_bytes = _pbkdf2_sha512(combined, salt, iterations)
     return f"pbkdf2_sha512${iterations}${salt.hex()}${hash_bytes.hex()}"
 
 
@@ -261,7 +321,7 @@ def verify_password(password: str, pepper: str, stored_hash: str) -> bool:
         iterations = int(iterations_str)
         salt = bytes.fromhex(salt_hex)
         combined = (password + pepper).encode("utf-8")
-        hash_bytes = hashlib.pbkdf2_hmac("sha512", combined, salt, iterations)
+        hash_bytes = _pbkdf2_sha512(combined, salt, iterations)
         return hash_bytes.hex() == hash_hex
     except (ValueError, AttributeError):
         return False
@@ -277,18 +337,34 @@ def load_env_file(path):
             continue
         key, value = line.split("=", 1)
         key, value = key.strip(), value.strip()
-        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
-            value = value[1:-1]
-        if key:
-            os.environ.setdefault(key, value)
+        os.environ.setdefault(key, value)
+
+
+def ensure_admin_password():
+    """Generate ADMIN_PASSWORD hash from PWD if PWD is set and ADMIN_PASSWORD is not.
+
+    Local-dev convenience only: in the Worker there is no process env, so this is
+    skipped and ADMIN_PASSWORD must come from a real secret binding.
+    """
+    if _worker_env is not None:
+        return
+    pwd = os.environ.get("PWD")
+    pepper = app_env("AUTH_PEPPER")
+    if pwd and pepper and not app_env("ADMIN_PASSWORD"):
+        os.environ["ADMIN_PASSWORD"] = hash_password(pwd, pepper)
 
 
 load_env_file(BASE_DIR / ".env")
-if not os.environ.get("SECRET_KEY"):
+ensure_admin_password()
+_secret_key = app_env("SECRET_KEY")
+if not _secret_key:
     # Cloudflare Workers block entropy during Worker startup (startup values
     # repeat across instances), so a random key cannot be generated here.
     # Fall back to a deterministic dev key; set SECRET_KEY via env in prod.
-    os.environ["SECRET_KEY"] = "vesterosbg-dev-secret-key"
+    _secret_key = "vesterosbg-dev-secret-key"
+# Mirror the resolved value back into os.environ so downstream code that reads
+# it directly (e.g. app.secret_key) sees it even when it came from worker env.
+os.environ["SECRET_KEY"] = _secret_key
 def _resolve_db_path():
     """Pick a writable location for the SQLite database.
 
@@ -396,6 +472,13 @@ except ImportError:
 # (Assigned above in the try/except block; local dev sets Default = None.)
 
 def db():
+    # Inside the Cloudflare Worker the data lives in D1 (binding ``DB``); the
+    # synchronous Flask views reach it through the run_sync(JSPI) bridge in
+    # d1_compat.  Locally (no worker env) fall back to the sqlite3 file.
+    if _worker_env is not None:
+        raw_env = get_raw_env(_worker_env)
+        if raw_env is not None and getattr(raw_env, "DB", None) is not None:
+            return D1Connection(raw_env)
     connection = sqlite3.connect(DB_PATH)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA foreign_keys = ON")
@@ -483,7 +566,7 @@ def init_db():
                 cur = conn.execute("INSERT INTO categories(name, position) VALUES (?, ?)", (category, cat_pos))
                 for pos, (name, description, price, unit) in enumerate(items):
                     conn.execute("INSERT INTO modules(category_id,name,description,price,unit,position) VALUES (?,?,?,?,?,?)", (cur.lastrowid, name, description, price, unit, pos))
-        for key, value in (("company_name", "Vesteros BG Ltd"), ("legal_name", "Вестерос БГ ЕООД"), ("eik", "206244287"), ("address", "гр. София, ж.к. Дианабад, бл. 42, ет. 1, ап. 4, ПК 1172"), ("phone", os.environ.get("WHATSAPP_PHONE", "359876641667")), ("city", "София и областта"), ("email", "office@vesterosbg.online")):
+        for key, value in (("company_name", "Vesteros BG Ltd"), ("legal_name", "Вестерос БГ ЕООД"), ("eik", "206244287"), ("address", "гр. София, ж.к. Дианабад, бл. 42, ет. 1, ап. 4, ПК 1172"), ("phone", app_env("WHATSAPP_PHONE", "359876641667")), ("city", "София и областта"), ("email", "office@vesterosbg.online")):
             conn.execute("INSERT OR IGNORE INTO settings(key,value) VALUES (?,?)", (key, value))
         conn.execute(
             "CREATE TABLE IF NOT EXISTS clients ("
@@ -510,7 +593,7 @@ def _initialize_db():
 
 
 def public_site_url():
-    configured_url = os.environ.get("SITE_URL", "").strip().rstrip("/")
+    configured_url = app_env("SITE_URL", "").strip().rstrip("/")
     return configured_url or request.url_root.rstrip("/")
 
 
@@ -555,7 +638,7 @@ def settings_dict(conn):
 
 
 def whatsapp(settings):
-    configured_phone = os.environ.get("WHATSAPP_PHONE") or settings.get("phone", "")
+    configured_phone = app_env("WHATSAPP_PHONE") or settings.get("phone", "")
     number = "".join(ch for ch in configured_phone if ch.isdigit())
     if not number:
         return "https://wa.me/"
@@ -842,8 +925,8 @@ def admin_login():
         company = settings_dict(conn).get("company_name", "Админ")
     if request.method == "POST":
         password = request.form.get("password", "")
-        pepper = os.environ.get("AUTH_PEPPER", "")
-        stored_hash = os.environ.get("ADMIN_PASSWORD", "")
+        pepper = app_env("AUTH_PEPPER")
+        stored_hash = app_env("ADMIN_PASSWORD")
         if verify_password(password, pepper, stored_hash):
             session["admin"] = True
             return redirect(url_for("admin_dashboard"))

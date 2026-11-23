@@ -17,7 +17,7 @@ def generate_pepper(length: int = 32) -> str:
 def hash_password(password: str, pepper: str) -> str:
     """Hash a password with the pepper using PBKDF2-SHA512."""
     salt = token_bytes(16)
-    iterations = 200_000
+    iterations = 100_000  # Cloudflare Workers WebCrypto caps PBKDF2 at 100k iterations
     combined = (password + pepper).encode("utf-8")
     hash_bytes = pbkdf2_hmac("sha512", combined, salt, iterations)
     return f"pbkdf2_sha512${iterations}${salt.hex()}${hash_bytes.hex()}"

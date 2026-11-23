@@ -135,9 +135,10 @@ def _get_db():
 
 def _settings_dict():
     """Read the project settings table (vendor-specific, project-local)."""
-    conn = _get_db()
-    if conn is None:
+    conn_factory = _get_db()
+    if conn_factory is None:
         return {}
+    conn = conn_factory()
     try:
         return {row["key"]: row["value"] for row in conn.execute(
             "SELECT key, value FROM settings")}

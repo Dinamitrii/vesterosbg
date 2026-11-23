@@ -5,3 +5,24 @@
 !/static/
 !/templates/
 /templates/1/
+
+# Keep local virtualenvs and caches out of the Python Worker bundle.
+venv_test/
+.venv/
+.venv-workers/
+__pycache__/
+**/__pycache__/
+*.pyc
+
+# Local runtime data / secrets / logs
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-shm
+*.sqlite3-wal
+.env
+.env.*
+.dev.vars
+cookie.txt
+probe*.txt
+*.log
+server.log
