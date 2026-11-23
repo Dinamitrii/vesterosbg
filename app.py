@@ -507,9 +507,13 @@ def root_favicon():
     return send_from_directory(BASE_DIR / "static" / "img" / "favicon", "favicon.ico")
 
 @app.get("/mcp/favicon.ico")
-@app.get("/mcp/favicon.svg")
-def mcp_favicon():
+def mcp_favicon_ico():
     return send_from_directory(BASE_DIR / "static" / "img" / "favicon", "favicon.ico")
+
+
+@app.get("/mcp/favicon.svg")
+def mcp_favicon_svg():
+    return send_from_directory(BASE_DIR / "static" / "img" / "favicon", "favicon.svg")
 
 
 @app.get("/ai-catalog.json")
