@@ -244,9 +244,8 @@
         <div class="wrap">
             <h2>Разкажете ни за вашия проект</h2>
             <p>Изпратете кратко описание и ще получите оферта със срок и цена.</p>
-            <!-- Смени имейла с реалния -->
-            <!-- email shortcut removed: contact-form, phone and WhatsApp remain the contact channels -->
-            <a class="btn" href="#kontakt">Изпрати запитване</a>
+            <p><b>Имейл за контакт:</b> <a href="mailto:{{ settings.email }}">{{ settings.email }}</a></p>
+            <a class="btn" href="mailto:{{ settings.email }}?subject=Запитване за уебсайт от Vesteros BG&body=Здравейте!%0A%0AИнтересувам се от изработката на уебсайт. Моля, свържете се с мен за оферта.%0A%0AИме: %0AТелефон: %0AИмейл:">Изпрати запитване</a>
         </div>
     </section>
 </main>
@@ -267,6 +266,7 @@
                 "name": "Vesteros BG",
                 "url": "{{ canonical_url | trim_end('/') }}",
                 "description": "Изработка и поддръжка на уебсайтове с включена SEO и AEO оптимизация.",
+                "email": "{{ settings.email }}",
                 "areaServed": {
                     "@type": "Country",
                     "name": "България"
