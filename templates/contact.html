@@ -7,6 +7,24 @@
   <title>Контакти · {{ settings.company_name }}</title>
   <meta name="description" content="Телефон, адрес и връзка с {{ settings.company_name }} в {{ settings.city }}.">
   <link rel="canonical" href="{{ canonical_url }}">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Контакти · {{ settings.company_name }}">
+  <meta property="og:description" content="Свържете се с {{ settings.company_name }} — телефон, имейл и адрес.">
+  <meta property="og:url" content="{{ canonical_url }}">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    "name": "Контакти · {{ settings.company_name }}",
+    "url": "{{ canonical_url }}",
+    "mainEntity": {
+      "@type": "Organization",
+      "name": "{{ settings.company_name }}",
+      "email": "{{ settings.email }}",
+      "url": "{{ canonical_url }}"
+    }
+  }
+  </script>
   {% include "_performance_head.html" %}
 </head>
 <body>

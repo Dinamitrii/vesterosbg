@@ -1120,3 +1120,9 @@ footer .wrap {
         margin-top: 4vh
     }
 }
+
+/* SEO/perf: skip rendering work for below-the-fold sections */
+section:not(.hero) {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 700px;
+}

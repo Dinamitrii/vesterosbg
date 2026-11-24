@@ -8,6 +8,8 @@
       "url": "{{ site_url }}",
       "description": "Изработка и поддръжка на уебсайтове с включена SEO и AEO оптимизация.",
       "email": "office@vesterosbg.online",
+      "image": "{{ site_url }}/static/img/brand/vesterosbg-brand-logo-320.webp",
+      "logo": { "@type": "ImageObject", "url": "{{ site_url }}/static/img/brand/vesterosbg-brand-logo-320.webp" },
       "areaServed": { "@type": "Country", "name": "България" },
       "inLanguage": "bg",
       "priceRange": "€€",

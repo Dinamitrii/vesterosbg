@@ -18,5 +18,9 @@
       }
     }
   ],
+  "mcp": {
+    "jsonrpc": "{{ site_url }}/mcp",
+    "sse": "{{ site_url }}/mcp/stream"
+  },
   "catalogs": []
 }

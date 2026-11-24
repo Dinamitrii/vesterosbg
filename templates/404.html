@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  {% include "_favicons.html" %}
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Страницата не е намерена · Vesteros BG</title>
+  <meta name="robots" content="noindex, follow">
+  {% include "_performance_head.html" %}
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="wrap bar">
+      <a class="brand" href="{{ url_for('index') }}" aria-label="Vesteros BG Ltd. — начало">
+        <img src="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo-320.webp') }}" width="96" height="96" alt="Vesteros BG Ltd." decoding="async">
+      </a>
+    </div>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="wrap">
+        <p class="eyebrow">ГРЕШКА 404</p>
+        <h1>Страницата не е намерена</h1>
+        <p>Съдържанието, което търсите, не съществува или е преместено.</p>
+        <div class="cta">
+          <a class="btn" href="{{ url_for('index') }}">Начална страница</a>
+          <a class="btn alt" href="{{ url_for('contact_page') }}">Контакти</a>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</body>
+</html>

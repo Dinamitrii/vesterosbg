@@ -16,6 +16,7 @@ import tempfile
 from functools import wraps
 from pathlib import Path
 from uuid import uuid4
+from datetime import datetime, timezone
 
 from urllib.parse import quote
 
@@ -593,8 +594,12 @@ def _initialize_db():
 
 
 def public_site_url():
+    try:
+        root = request.url_root.rstrip("/")
+    except RuntimeError:
+        root = ""
     configured_url = app_env("SITE_URL", "").strip().rstrip("/")
-    return configured_url or request.url_root.rstrip("/")
+    return root or configured_url
 
 
 @app.get("/img/favicon/<path:filename>")
@@ -845,9 +850,10 @@ def sitemap():
     ET.register_namespace("image", image_ns)
     root = ET.Element(f"{{{sitemap_ns}}}urlset")
 
-    def add_url(path, *, priority="0.7", images=()):
+    def add_url(path, *, priority="0.7", images=(), lastmod=None):
         entry = ET.SubElement(root, f"{{{sitemap_ns}}}url")
         ET.SubElement(entry, f"{{{sitemap_ns}}}loc").text = f"{base_url}{path}"
+        ET.SubElement(entry, f"{{{sitemap_ns}}}lastmod").text = lastmod or datetime.now(timezone.utc).date().isoformat()
         ET.SubElement(entry, f"{{{sitemap_ns}}}changefreq").text = "weekly"
         ET.SubElement(entry, f"{{{sitemap_ns}}}priority").text = priority
         for filename, title in images:
@@ -946,11 +952,21 @@ def llms_txt():
     return send_from_directory(BASE_DIR / "static", "llms.txt", mimetype="text/plain")
 
 
+@app.get("/llms-full.txt")
+def llms_full_txt():
+    return send_from_directory(BASE_DIR / "static", "llms-full.txt", mimetype="text/plain")
+
+
 @app.get("/robots.txt")
 def robots():
     sitemap_url = escape(f"{request.url_root.rstrip('/')}/sitemap.xml")
     body = f"User-agent: *\nAllow: /\nDisallow: {url_for('admin_login')}\nSitemap: {sitemap_url}\n"
     return Response(body, mimetype="text/plain")
+
+
+@app.errorhandler(404)
+def not_found(error):
+    return render_template("404.html"), 404
 
 
 
