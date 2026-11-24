@@ -633,6 +633,15 @@ def ai_catalog():
     )
 
 
+@app.get("/ld-schema.json")
+def ld_schema():
+    return Response(
+        render_template("ld-schema.json", site_url=request.url_root.rstrip("/")),
+        mimetype="application/ld+json",
+        headers={"Cache-Control": "max-age=3600"},
+    )
+
+
 def settings_dict(conn):
     return {row["key"]: row["value"] for row in conn.execute("SELECT key,value FROM settings")}
 
@@ -829,7 +838,7 @@ def category_gallery(category_name):
 @app.get("/sitemap.xml")
 @app.get("/static/sitemap.xml")
 def sitemap():
-    base_url = public_site_url().rstrip("/")
+    base_url = request.url_root.rstrip("/")
     sitemap_ns = "http://www.sitemaps.org/schemas/sitemap/0.9"
     image_ns = "http://www.google.com/schemas/sitemap-image/1.1"
     ET.register_namespace("", sitemap_ns)
@@ -882,6 +891,11 @@ def sitemap():
     if hasattr(ET, "indent"):
         ET.indent(root, space="  ")
     sitemap_data = ET.tostring(root, encoding="utf-8", xml_declaration=True)
+    sitemap_data = sitemap_data.replace(
+        b"?>",
+        b'?>\n<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>',
+        1,
+    )
     temp_path = None
     try:
         with tempfile.NamedTemporaryFile(mode="wb", dir=app.static_folder,
@@ -903,6 +917,30 @@ def sitemap():
                     headers={"Cache-Control": "no-store"})
 
 
+@app.get("/sitemap.xsl")
+def sitemap_xsl():
+    xsl = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" '
+        'xmlns:s="http://www.sitemaps.org/schemas/sitemap/0.9">'
+        '<xsl:output method="html" encoding="UTF-8"/>'
+        '<xsl:template match="/">'
+        '<html lang="bg"><head><meta charset="utf-8"/>'
+        '<title>Sitemap · Вестерос БГ</title>'
+        '<link rel="icon" href="/img/favicon/favicon.svg" type="image/svg+xml"/>'
+        '<link rel="icon" href="/img/favicon/favicon.ico" sizes="any"/>'
+        '<style>body{font:15px system-ui,Arial,sans-serif;margin:40px auto;max-width:820px;'
+        'padding:0 20px;color:#18332a}a{color:#176b51;text-decoration:none}'
+        'li{margin:6px 0;word-break:break-all}</style></head><body>'
+        '<h1>Sitemap</h1><ul>'
+        '<xsl:for-each select="s:urlset/s:url">'
+        '<li><a href="{s:loc}"><xsl:value-of select="s:loc"/></a></li>'
+        '</xsl:for-each></ul></body></html>'
+        '</xsl:template></xsl:stylesheet>'
+    )
+    return Response(xsl, content_type="application/xml; charset=utf-8")
+
+
 @app.get("/llms.txt")
 def llms_txt():
     return send_from_directory(BASE_DIR / "static", "llms.txt", mimetype="text/plain")
@@ -910,7 +948,7 @@ def llms_txt():
 
 @app.get("/robots.txt")
 def robots():
-    sitemap_url = escape(f"{public_site_url()}{url_for('sitemap')}")
+    sitemap_url = escape(f"{request.url_root.rstrip('/')}/sitemap.xml")
     body = f"User-agent: *\nAllow: /\nDisallow: {url_for('admin_login')}\nSitemap: {sitemap_url}\n"
     return Response(body, mimetype="text/plain")
 

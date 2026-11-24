@@ -23,15 +23,15 @@
         }
     </style>
 
-    <link rel="preload" as="image" href="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }}"
-          imagesrcset="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }} 160w, {{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }} 320w"
+    <link rel="preload" as="image" type="image/webp" href="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo-320.webp') }}"
+          imagesrcset="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo-160.webp') }} 160w, {{ url_for('static', filename='img/brand/vesterosbg-brand-logo-320.webp') }} 320w"
           imagesizes="(max-width: 700px) 88px, 96px" fetchpriority="high">
 </head>
 <body>
 <header>
     <div class="wrap bar">
         <a class="brand" href="{{ url_for('index') }}" aria-label="Vesteros BG Ltd. – начало">
-            <img alt="Vesteros BG Ltd." src="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo.svg') }}" width="96" height="96"></a>
+            <img alt="Vesteros BG Ltd." src="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo-320.webp') }}" srcset="{{ url_for('static', filename='img/brand/vesterosbg-brand-logo-160.webp') }} 160w, {{ url_for('static', filename='img/brand/vesterosbg-brand-logo-320.webp') }} 320w" sizes="(max-width: 700px) 88px, 96px" width="96" height="96" decoding="async"></a>
         <nav aria-label="Основна навигация">
             <a href="#uslugi">Услуги</a>
             <a href="#ceni">Цени</a>

@@ -7,14 +7,14 @@
       "name": "Уебсайт",
       "description": "Бърз и SEO-релевантен уебсайт, подготвен във вакансия до 5 дни.",
       "image": {
-        "contentUrl": "{{ site_url }}/static/img/brand/vesterosbg-brand-logo.svg"
+        "contentUrl": "{{ site_url }}/static/img/brand/vesterosbg-brand-logo-320.webp"
       }
     },
     {
       "name": "AI технологии",
       "description": "AI интеграции, автоматизации и chatbots за бизнеса.",
       "image": {
-        "contentUrl": "{{ site_url }}/static/img/brand/vesterosbg-brand-logo.svg"
+        "contentUrl": "{{ site_url }}/static/img/brand/vesterosbg-brand-logo-320.webp"
       }
     }
   ],

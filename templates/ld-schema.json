@@ -1,0 +1,94 @@
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "ProfessionalService",
+      "@id": "{{ site_url }}/#org",
+      "name": "Vesteros BG",
+      "url": "{{ site_url }}",
+      "description": "Изработка и поддръжка на уебсайтове с включена SEO и AEO оптимизация.",
+      "email": "office@vesterosbg.online",
+      "areaServed": { "@type": "Country", "name": "България" },
+      "inLanguage": "bg",
+      "priceRange": "€€",
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Услуги",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "priceCurrency": "EUR",
+            "price": "350",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Изработка на уебсайт с SEO и AEO оптимизация",
+              "description": "Готов до 5 дни."
+            }
+          },
+          {
+            "@type": "Offer",
+            "priceCurrency": "EUR",
+            "price": "100",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Допълнителен модул за уебсайт",
+              "description": "Готов до 5 дни."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "{{ site_url }}/#site",
+      "url": "{{ site_url }}",
+      "name": "Vesteros BG",
+      "inLanguage": "bg"
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Колко струва изработката на уебсайт?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Изработката на уебсайт струва 350 € и включва SEO и AEO оптимизация. Всеки допълнителен модул е 100 €."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "За какво време е готов сайтът?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "До 5 дни след получаване на материалите. Всеки допълнителен модул също отнема до 5 дни."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Какво е AEO оптимизация?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "AEO (Answer Engine Optimization) подготвя сайта да бъде цитиран в отговорите на AI асистенти и в блоковете с отговори на Google."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Предлагате ли поддръжка след пускането?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Да. Поддържаме сайтове, като обновяваме съдържанието, следим за грешки и правим корекции. Цената се уговаря според нуждите."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Мога ли да добавям модули по-късно?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Да. Модули могат да се добавят към нов или вече съществуващ сайт по всяко време."
+          }
+        }
+      ]
+    }
+  ]
+}
